@@ -16,7 +16,6 @@ public class RenderEntityMan extends RenderLiving<EntityMan> {
 
 	@Override
 	protected ResourceLocation getEntityTexture(EntityMan entity) {
-		// TODO Auto-generated method stub
 		return new ResourceLocation(Reference.MODID, "man");
 	}
 

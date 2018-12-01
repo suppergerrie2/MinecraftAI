@@ -14,13 +14,17 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Enchantments;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -34,15 +38,17 @@ public class EntityMan extends EntityLiving {
 	FakePlayer fakePlayer;
 
 	int miningTicks = 0;
-
-	BlockPos lastMinePos = BlockPos.ORIGIN;
-
+	BlockPos lastMinePos = BlockPos.ORIGIN.down();
 	private float blockSoundTimer;
-	
 	boolean lastTickLeftClicked = false;
+	
+	//9 for hotbar, 9*3 for inventory and 1 for offhand
+	ItemStack[] inventory = new ItemStack[9 + 9*3];
 
 	public boolean leftClicking;
 
+	int selectedItemIndex = 0;
+	
 	public EntityMan(World worldIn) {
 		this(worldIn, "BOT");
 	}
@@ -50,12 +56,14 @@ public class EntityMan extends EntityLiving {
 	public EntityMan(World worldIn, String name) {
 		super(worldIn);
 		if(!worldIn.isRemote) {
-			fakePlayer = new FakePlayer((WorldServer)this.world, new GameProfile(this.getUniqueID(), name));
+			fakePlayer = new FakePlayer((WorldServer)this.world, new GameProfile(this.getUniqueID(), name), this);
 		}
 
 		this.setAIMoveSpeed(0.3f);
-		this.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
-		this.activeItemStack = new ItemStack(Items.DIAMOND_SWORD);
+		
+		for(int i = 0; i < inventory.length; i++) {
+			inventory[i] =ItemStack.EMPTY; 
+		}
 	}
 
 	@Override
@@ -80,23 +88,71 @@ public class EntityMan extends EntityLiving {
 		}
 		
 		if(!world.isRemote) {
-			//TODO: Sync whole inventory with fakeplayer
-			fakePlayer.inventory.setInventorySlotContents(0, getActiveItemStack());
+			this.setHeldItem(EnumHand.MAIN_HAND, this.inventory[this.selectedItemIndex]);
+			
 			fakePlayer.setPosition(posX, posY, posZ);
 			fakePlayer.onUpdate();
 			
-			
-
 			RayTraceResult result = this.rayTraceBlockEntity();
 
 			if(leftClicking) {
 				leftClick(result);
 			} else {
 				lastTickLeftClicked = false;
+				if(this.lastMinePos.getY()>0) {
+					resetMining();
+				}
+			}
+			
+			List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
+			
+			for(EntityItem item : items) {
+				pickup(item);
 			}
 		}
 	}
+	
+	//TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
+	void pickup(EntityItem item) {
+		ItemStack stack = item.getItem();
+		
+		for(int i = 0; i < this.inventory.length; i++) {
+			if(stack.isEmpty()) break;
+			
+			ItemStack iStack = this.inventory[i];
+			
+			if(iStack.isEmpty()) {
+				this.inventory[i] = stack.copy();
+				stack.setCount(0);
+				break;
+				//TODO: How does it handle NBT?
+			} else if(iStack.isStackable()&&ItemStack.areItemsEqual(stack, iStack)) {
+				if(iStack.getCount() + stack.getCount() > iStack.getMaxStackSize()) {
+					stack.setCount(iStack.getMaxStackSize()-iStack.getCount());
+					iStack.setCount(iStack.getMaxStackSize());
+				} else {
+					iStack.setCount(iStack.getCount()+stack.getCount());
+					stack.setCount(0);
+				}
+			}
+		}
+		
+		this.setHeldItem(EnumHand.MAIN_HAND, this.inventory[this.selectedItemIndex]);
+		
+		if(stack.isEmpty()) {
+			item.setDead();
+		}
+	}
 
+	@Override
+	public void setHeldItem(EnumHand hand, ItemStack stack)
+    {
+		if(stack!=this.getHeldItem(hand)) {
+			super.setHeldItem(hand, stack);
+			fakePlayer.setHeldItem(hand, stack);
+		}
+    }
+	
 	public void leftClick(RayTraceResult result) {
 	
 		if(result==null) return;
@@ -179,6 +235,7 @@ public class EntityMan extends EntityLiving {
 	void resetMining() {
 		miningTicks = 0;
 		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
+		this.lastMinePos.down(255);
 	}
 
 	@Override
