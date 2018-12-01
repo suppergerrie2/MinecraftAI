@@ -52,10 +52,6 @@ public class MinecraftAI {
 	public void postInit(FMLPostInitializationEvent event) {
 		logger.info("postInit");
 	}
-	
-	private void registerEntity(Class<? extends Entity> entityClass, String name) {
-		EntityRegistry.registerModEntity(new ResourceLocation(Reference.MODID, name), entityClass, name, entityID++, this, 80, 1, true);
-	}
 
 //	@Override
 //	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {

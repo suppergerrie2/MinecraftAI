@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
 public class ModEntities {
 
 	@SubscribeEvent
-	public static void registerItems(RegistryEvent.Register<EntityEntry> event) {
+	public static void registerEntities(RegistryEvent.Register<EntityEntry> event) {
 		EntityEntry e = EntityEntryBuilder.create().entity(EntityMan.class).name("man").tracker(80, 1, false).id(new ResourceLocation(Reference.MODID, "man"), 0).build();
 		event.getRegistry().registerAll(e);
 	}
