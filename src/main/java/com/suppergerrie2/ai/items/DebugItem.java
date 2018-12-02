@@ -31,6 +31,7 @@ public class DebugItem extends Item {
 	    if(!worldIn.isRemote) {
             EntityMan man = new EntityMan(worldIn, player.getName() + "'s bot");
             man.setCustomNameTag( player.getName() + "'s bot");
+            man.setAlwaysRenderNameTag(true);
             man.setPosition(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ);
             
             worldIn.spawnEntity(man);

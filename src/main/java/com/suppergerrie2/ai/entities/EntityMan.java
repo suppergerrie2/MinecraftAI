@@ -12,6 +12,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -82,6 +83,9 @@ public class EntityMan extends EntityLiving {
 	public void onUpdate()
 	{
 		super.onUpdate();
+	
+		//For animations - By Mechanist
+		updateAction();
 		
 		if(this.isDead) {
 			this.resetMining();
@@ -97,6 +101,7 @@ public class EntityMan extends EntityLiving {
 			RayTraceResult result = this.rayTraceBlockEntity();
 
 			if(leftClicking) {
+				swingArm(EnumHand.MAIN_HAND);
 				leftClick(result);
 			} else {
 				lastTickLeftClicked = false;
@@ -161,6 +166,7 @@ public class EntityMan extends EntityLiving {
 		switch(result.typeOfHit) {
 		case BLOCK:
 			mine(result.getBlockPos(), result.sideHit);
+			
 			break;
 		case ENTITY:
 			if(!lastTickLeftClicked) {
@@ -174,9 +180,18 @@ public class EntityMan extends EntityLiving {
 		}
 		lastTickLeftClicked = true;
 	}
-
+	
+	//Adds swinging animation - By Mechanist
+    protected void updateAction()
+    {
+        super.updateEntityActionState();
+        this.updateArmSwingProgress();
+        this.rotationYawHead = this.rotationYaw;
+    }
+    
 	//TODO: Sounds 
-	public void mine(BlockPos pos, EnumFacing facing) {		
+	public void mine(BlockPos pos, EnumFacing facing) {	
+		
 		if(!this.world.getWorldBorder().contains(pos)||pos.distanceSq(getPosition())>this.getBlockReachDistance()*this.getBlockReachDistance()) {
 			resetMining();
 			return;
@@ -200,7 +215,7 @@ public class EntityMan extends EntityLiving {
 		++this.blockSoundTimer;
 
 
-		this.world.sendBlockBreakProgress(this.getEntityId(), pos, (int)(state.getPlayerRelativeBlockHardness(fakePlayer, world, pos)*miningTicks * 10.0F) - 1);
+		this.world.sendBlockBreakProgress(this.getEntityId(), pos, (int)(state.getPlayerRelativeBlockHardness(fakePlayer, world, pos)*miningTicks*10.0f) - 1);
 
 		//Check if block has been broken
 		if(state.getPlayerRelativeBlockHardness(fakePlayer, world, pos)*miningTicks > 1.0f) {
@@ -232,7 +247,9 @@ public class EntityMan extends EntityLiving {
 			}
 		}
 	}
-
+	
+	
+	  
 	void resetMining() {
 		miningTicks = 0;
 		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
