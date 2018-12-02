@@ -16,15 +16,11 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Enchantments;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -241,7 +237,7 @@ public class EntityMan extends EntityLiving {
 	@Override
 	public void onDeath(DamageSource cause) {
 		super.onDeath(cause);
-	
+		world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
 		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
 	}
 
