@@ -2,7 +2,9 @@ package com.suppergerrie2.ai.entities;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
@@ -22,10 +24,16 @@ import net.minecraft.world.WorldServer;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 public class EntityMan extends EntityLiving {
 
-	FakePlayer fakePlayer;
+    public boolean playerTexturesLoaded = false;
+    public Map<MinecraftProfileTexture.Type, ResourceLocation> playerTextures = Maps.newEnumMap(MinecraftProfileTexture.Type.class);
+    public String skinType;
+
+    GameProfile profile;
+    FakePlayer fakePlayer;
 
 	int miningTicks = 0;
 	BlockPos lastMinePos = BlockPos.ORIGIN.down();
@@ -45,8 +53,11 @@ public class EntityMan extends EntityLiving {
 
 	public EntityMan(World worldIn, String name) {
 		super(worldIn);
+        this.setCustomNameTag(name);
+
+        profile = new GameProfile(this.getUniqueID(), name);
 		if(!worldIn.isRemote) {
-			fakePlayer = new FakePlayer((WorldServer)this.world, new GameProfile(this.getUniqueID(), name), this);
+            fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
 		}
 
 		this.setAIMoveSpeed(0.3f);
@@ -234,7 +245,10 @@ public class EntityMan extends EntityLiving {
 	@Override
 	public void onDeath(DamageSource cause) {
 		super.onDeath(cause);
-		world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
+
+        if (!world.isRemote) {
+            world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
+        }
 		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
 	}
 
@@ -328,7 +342,7 @@ public class EntityMan extends EntityLiving {
 		return raytrace;
 	}
 
-	public RayTraceResult rayTrace(double blockReachDistance)
+    private RayTraceResult rayTrace(double blockReachDistance)
 	{
 	    Vec3d vec3d = this.getPositionEyes(1);
 	    Vec3d vec3d1 = this.getLook(1);

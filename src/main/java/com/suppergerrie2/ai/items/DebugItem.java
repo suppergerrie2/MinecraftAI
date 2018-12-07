@@ -25,8 +25,13 @@ public class DebugItem extends Item {
                                       EnumFacing facing, float hitX, float hitY, float hitZ) {
 
         if (!worldIn.isRemote) {
-            EntityMan man = new EntityMan(worldIn, player.getName() + "'s bot");
-            man.setCustomNameTag(player.getName() + "'s bot");
+            String name = player.getName() + "'s bot";
+            ItemStack stack = player.getHeldItem(hand);
+            if (stack.hasDisplayName()) {
+                name = stack.getDisplayName();
+            }
+
+            EntityMan man = new EntityMan(worldIn, name);
             man.setPosition(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ);
 
             worldIn.spawnEntity(man);
