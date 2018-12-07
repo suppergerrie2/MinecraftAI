@@ -10,6 +10,11 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
+//Only while chaosnetclient is in dev
+configurations.all {
+    // Check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
 
 version = "1.0"
 group = "com.suppergerrie2.ai" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -20,8 +25,12 @@ compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
 }
 
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 minecraft {
-    version = "1.12.2-14.23.2.2611"
+    version = "1.12.2-14.23.5.2795"
     runDir = "run"
     
     // the mappings can be changed at any time, and must be in the following format.
@@ -29,32 +38,11 @@ minecraft {
     // stable_#            stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // simply re-run your setup task after changing the mappings to update your workspace.
-    mappings = "snapshot_20171003"
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+    mappings = "stable_39"
 }
 
 dependencies {
-    // you may put jars on which you depend on in ./libs
-    // or you may define them like so..
-    //compile "some.group:artifact:version:classifier"
-    //compile "some.group:artifact:version"
-      
-    // real examples
-    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
-
-    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
-    // except that these dependencies get remapped to your current MCP mappings
-    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // for more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
+    compile('com.github.suppergerrie2:JavaChaosNetClient:-SNAPSHOT') {changing = true}
 }
 
 processResources {

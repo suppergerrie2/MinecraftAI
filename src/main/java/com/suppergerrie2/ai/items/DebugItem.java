@@ -2,14 +2,10 @@ package com.suppergerrie2.ai.items;
 
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.entities.EntityMan;
-import com.suppergerrie2.ai.entities.FakePlayer;
-
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -21,7 +17,7 @@ public class DebugItem extends Item {
 
 	public DebugItem() {
 		this.setRegistryName(new ResourceLocation(Reference.MODID, "debug_item"));
-		this.setUnlocalizedName("debug_item");
+		this.setTranslationKey("debug_item");
 	}
 
 	@Override

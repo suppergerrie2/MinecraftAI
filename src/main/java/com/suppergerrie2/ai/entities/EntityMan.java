@@ -1,38 +1,27 @@
 package com.suppergerrie2.ai.entities;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
-
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.mojang.authlib.GameProfile;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.ChatType;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class EntityMan extends EntityLiving {
 
@@ -222,7 +211,7 @@ public class EntityMan extends EntityLiving {
 			state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
 
 			if(state.getBlock().removedByPlayer(state, world, pos, fakePlayer, true)) {
-				state.getBlock().onBlockDestroyedByPlayer(world, pos, state);
+				state.getBlock().onPlayerDestroy(world, pos, state);
 			} else {
 				harvest = false;
 			}
@@ -273,7 +262,7 @@ public class EntityMan extends EntityLiving {
 		}
 
 		Vec3d lookVector = this.getLook(1.0F);
-		Vec3d scaledLookVector = eyePosition.addVector(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
+		Vec3d scaledLookVector = eyePosition.add(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
 		
 		Vec3d entityPos = null;
 		
@@ -342,7 +331,7 @@ public class EntityMan extends EntityLiving {
 	{
 	    Vec3d vec3d = this.getPositionEyes(1);
 	    Vec3d vec3d1 = this.getLook(1);
-	    Vec3d vec3d2 = vec3d.addVector(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
+		Vec3d vec3d2 = vec3d.add(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
 	    return this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
 	}
 
