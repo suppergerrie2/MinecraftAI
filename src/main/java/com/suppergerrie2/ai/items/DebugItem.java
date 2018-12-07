@@ -15,43 +15,41 @@ import net.minecraft.world.World;
 
 public class DebugItem extends Item {
 
-	public DebugItem() {
-		this.setRegistryName(new ResourceLocation(Reference.MODID, "debug_item"));
-		this.setTranslationKey("debug_item");
-	}
+    public DebugItem() {
+        this.setRegistryName(new ResourceLocation(Reference.MODID, "debug_item"));
+        this.setTranslationKey("debug_item");
+    }
 
-	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand,
-			EnumFacing facing, float hitX, float hitY, float hitZ) {
-		
-	    if(!worldIn.isRemote) {
+    @Override
+    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand,
+                                      EnumFacing facing, float hitX, float hitY, float hitZ) {
+
+        if (!worldIn.isRemote) {
             EntityMan man = new EntityMan(worldIn, player.getName() + "'s bot");
-            man.setCustomNameTag( player.getName() + "'s bot");
+            man.setCustomNameTag(player.getName() + "'s bot");
             man.setPosition(pos.getX() + hitX, pos.getY() + hitY, pos.getZ() + hitZ);
-            
+
             worldIn.spawnEntity(man);
         }
-	    
-		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
-		
-		
-	}
-	
-	
 
-	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target,
-			EnumHand hand) {
-		
-		if(target instanceof EntityMan) {
-			EntityMan man = (EntityMan)target;
-			man.leftClicking = !man.leftClicking;
-			return true;
-		}
-		
-		return super.itemInteractionForEntity(stack, playerIn, target, hand);
-	}
-	
-	
+        return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
+
+
+    }
+
+
+    @Override
+    public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target,
+                                            EnumHand hand) {
+
+        if (target instanceof EntityMan) {
+            EntityMan man = (EntityMan) target;
+            man.leftClicking = !man.leftClicking;
+            return true;
+        }
+
+        return super.itemInteractionForEntity(stack, playerIn, target, hand);
+    }
+
 
 }

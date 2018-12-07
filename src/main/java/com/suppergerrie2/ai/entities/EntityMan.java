@@ -31,18 +31,18 @@ public class EntityMan extends EntityLiving {
 	BlockPos lastMinePos = BlockPos.ORIGIN.down();
 	private float blockSoundTimer;
 	boolean lastTickLeftClicked = false;
-	
+
 	//9 for hotbar, 9*3 for inventory and 1 for offhand
 	ItemStack[] inventory = new ItemStack[9 + 9*3];
 
 	public boolean leftClicking;
 
 	int selectedItemIndex = 0;
-	
+
 	public EntityMan(World worldIn) {
 		this(worldIn, "BOT");
 	}
-	
+
 	public EntityMan(World worldIn, String name) {
 		super(worldIn);
 		if(!worldIn.isRemote) {
@@ -50,9 +50,9 @@ public class EntityMan extends EntityLiving {
 		}
 
 		this.setAIMoveSpeed(0.3f);
-		
+
 		for(int i = 0; i < inventory.length; i++) {
-			inventory[i] =ItemStack.EMPTY; 
+            inventory[i] = ItemStack.EMPTY;
 		}
 	}
 
@@ -71,19 +71,19 @@ public class EntityMan extends EntityLiving {
 	public void onUpdate()
 	{
 		super.onUpdate();
-		
-		if(this.isDead) {
+
+        if (this.isDead) {
 			this.resetMining();
 			return;
 		}
-		
-		if(!world.isRemote) {
+
+        if (!world.isRemote) {
 			this.setHeldItem(EnumHand.MAIN_HAND, this.inventory[this.selectedItemIndex]);
-			
-			fakePlayer.setPosition(posX, posY, posZ);
+
+            fakePlayer.setPosition(posX, posY, posZ);
 			fakePlayer.onUpdate();
-			
-			RayTraceResult result = this.rayTraceBlockEntity();
+
+            RayTraceResult result = this.rayTraceBlockEntity();
 
 			if(leftClicking) {
 				leftClick(result);
@@ -93,25 +93,27 @@ public class EntityMan extends EntityLiving {
 					resetMining();
 				}
 			}
-			
-			List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
-			
-			for(EntityItem item : items) {
+
+            List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
+
+            for (EntityItem item : items) {
 				pickup(item);
 			}
 		}
 	}
-	
-	//TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
+
+    //TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
 	void pickup(EntityItem item) {
+        if (item.cannotPickup()) return;
+
 		ItemStack stack = item.getItem();
-		
-		for(int i = 0; i < this.inventory.length; i++) {
+
+        for (int i = 0; i < this.inventory.length; i++) {
 			if(stack.isEmpty()) break;
-			
-			ItemStack iStack = this.inventory[i];
-			
-			if(iStack.isEmpty()) {
+
+            ItemStack iStack = this.inventory[i];
+
+            if (iStack.isEmpty()) {
 				this.inventory[i] = stack.copy();
 				stack.setCount(0);
 				break;
@@ -126,10 +128,10 @@ public class EntityMan extends EntityLiving {
 				}
 			}
 		}
-		
-		this.setHeldItem(EnumHand.MAIN_HAND, this.inventory[this.selectedItemIndex]);
-		
-		if(stack.isEmpty()) {
+
+        this.setHeldItem(EnumHand.MAIN_HAND, this.inventory[this.selectedItemIndex]);
+
+        if (stack.isEmpty()) {
 			item.setDead();
 		}
 	}
@@ -142,12 +144,12 @@ public class EntityMan extends EntityLiving {
 			fakePlayer.setHeldItem(hand, stack);
 		}
     }
-	
-	public void leftClick(RayTraceResult result) {
-	
-		if(result==null) return;
-	
-		switch(result.typeOfHit) {
+
+    public void leftClick(RayTraceResult result) {
+
+        if (result == null) return;
+
+        switch (result.typeOfHit) {
 		case BLOCK:
 			mine(result.getBlockPos(), result.sideHit);
 			break;
@@ -164,8 +166,8 @@ public class EntityMan extends EntityLiving {
 		lastTickLeftClicked = true;
 	}
 
-	//TODO: Sounds 
-	public void mine(BlockPos pos, EnumFacing facing) {		
+    //TODO: Sounds
+    public void mine(BlockPos pos, EnumFacing facing) {
 		if(!this.world.getWorldBorder().contains(pos)||pos.distanceSq(getPosition())>this.getBlockReachDistance()*this.getBlockReachDistance()) {
 			resetMining();
 			return;
@@ -235,10 +237,9 @@ public class EntityMan extends EntityLiving {
 		world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
 		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
 	}
-	
-	
-	
-	public RayTraceResult rayTraceBlockEntity()
+
+
+    public RayTraceResult rayTraceBlockEntity()
 	{
 		Entity pointedEntity = null;
 
@@ -247,8 +248,8 @@ public class EntityMan extends EntityLiving {
 		Vec3d eyePosition = this.getPositionEyes(1);
 
 		boolean flag = false;
-		
-		//Defaults to reachdistance
+
+        //Defaults to reachdistance
 		double distanceFromHit = reachDistance;
 
 		if (reachDistance > 3.0D)
@@ -263,10 +264,10 @@ public class EntityMan extends EntityLiving {
 
 		Vec3d lookVector = this.getLook(1.0F);
 		Vec3d scaledLookVector = eyePosition.add(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
-		
-		Vec3d entityPos = null;
-		
-		List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, new Predicate<Entity>()
+
+        Vec3d entityPos = null;
+
+        List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, new Predicate<Entity>()
 		{
 			public boolean apply(@Nullable Entity p_apply_1_)
 			{

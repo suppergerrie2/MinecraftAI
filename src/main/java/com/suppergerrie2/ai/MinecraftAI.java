@@ -17,51 +17,51 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = Reference.MODID, name=Reference.MODNAME, version=Reference.VERSION, acceptedMinecraftVersions=Reference.ACCEPTED_MINECRAFT_VERSIONS)
+@Mod(modid = Reference.MODID, name = Reference.MODNAME, version = Reference.VERSION, acceptedMinecraftVersions = Reference.ACCEPTED_MINECRAFT_VERSIONS)
 public class MinecraftAI {
 
-	@Instance
-	public static MinecraftAI instance;
-	
-	@SidedProxy(modId=Reference.MODID,clientSide="com.suppergerrie2.ai.proxies.ClientProxy", serverSide="com.suppergerrie2.ai.proxies.ServerProxy")
-	public static IProxy proxy;
-	
-	public static Logger logger;
-	public static ChaosNetClient chaosNetClient = new ChaosNetClient();
+    @Instance
+    public static MinecraftAI instance;
 
-	static int entityID = 0;
-	
-	public static final SimpleNetworkWrapper NETWORK_INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
+    @SidedProxy(modId = Reference.MODID, clientSide = "com.suppergerrie2.ai.proxies.ClientProxy", serverSide = "com.suppergerrie2.ai.proxies.ServerProxy")
+    public static IProxy proxy;
 
-	@EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
-		logger = event.getModLog();
+    public static Logger logger;
+    public static ChaosNetClient chaosNetClient = new ChaosNetClient();
 
-		proxy.preInit(event);
+    static int entityID = 0;
 
-		logger.info("preInit");
-	}
-	
-	@EventHandler
-	public void init(FMLInitializationEvent event) {
-		logger.info("init");
-		
+    public static final SimpleNetworkWrapper NETWORK_INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
+
+    @EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        logger = event.getModLog();
+
+        proxy.preInit(event);
+
+        logger.info("preInit");
+    }
+
+    @EventHandler
+    public void init(FMLInitializationEvent event) {
+        logger.info("init");
+
 //		NetworkRegistry.INSTANCE.registerGuiHandler(instance, this);
-	}
-	
-	@EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-		logger.info("postInit");
-	}
+    }
 
-	@EventHandler
-	public void serverLoad(FMLServerStartingEvent event) {
-		// register server commands
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        logger.info("postInit");
+    }
 
-		event.registerServerCommand(new CommandLogin());
-		event.registerServerCommand(new CommandGetRooms());
-		event.registerServerCommand(new CommandCreateRoom());
-	}
+    @EventHandler
+    public void serverLoad(FMLServerStartingEvent event) {
+        // register server commands
+
+        event.registerServerCommand(new CommandLogin());
+        event.registerServerCommand(new CommandGetRooms());
+        event.registerServerCommand(new CommandCreateRoom());
+    }
 
 //	@Override
 //	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
@@ -73,5 +73,5 @@ public class MinecraftAI {
 //		if(ID == Reference.GUIID) return new GuiHeadCrafter(player.inventory, (TileEntityHeadCrafter)world.getTileEntity(new BlockPos(x,y,z)));
 //		return null;
 //	}
-	
+
 }
