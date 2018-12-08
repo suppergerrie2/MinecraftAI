@@ -3,11 +3,16 @@ package com.suppergerrie2.ai.entities;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
 public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
 
     EntityMan masterMan;
+
+    public FakePlayer(World world) {
+        this((WorldServer) world, null, null);
+    }
 
     public FakePlayer(WorldServer world, GameProfile name, EntityMan entityMan) {
         super(world, name);
@@ -30,10 +35,6 @@ public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
                 this.getAttributeMap().getAttributeInstance(attribute.getAttribute()).applyModifier(modifier);
             }
         }
-
-        //TODO: apply attributes
-//		ItemStack stack = this.getHeldItemMainhand();
-//		stack.getAttributeModifiers(equipmentSlot)
 
     }
 

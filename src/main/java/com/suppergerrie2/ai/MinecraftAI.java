@@ -14,7 +14,6 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = Reference.MODID, name = Reference.MODNAME, version = Reference.VERSION, acceptedMinecraftVersions = Reference.ACCEPTED_MINECRAFT_VERSIONS)
@@ -29,10 +28,6 @@ public class MinecraftAI {
     public static Logger logger;
     public static ChaosNetClient chaosNetClient = new ChaosNetClient();
 
-    static int entityID = 0;
-
-    public static final SimpleNetworkWrapper NETWORK_INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
-
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
@@ -46,7 +41,7 @@ public class MinecraftAI {
     public void init(FMLInitializationEvent event) {
         logger.info("init");
 
-//		NetworkRegistry.INSTANCE.registerGuiHandler(instance, this);
+        NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
     }
 
     @EventHandler
@@ -62,16 +57,5 @@ public class MinecraftAI {
         event.registerServerCommand(new CommandGetRooms());
         event.registerServerCommand(new CommandCreateRoom());
     }
-
-//	@Override
-//	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-//		return new ContainerHeadCrafter(player.inventory, (TileEntityHeadCrafter) world.getTileEntity(new BlockPos(x,y,z)));
-//	}
-//
-//	@Override
-//	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-//		if(ID == Reference.GUIID) return new GuiHeadCrafter(player.inventory, (TileEntityHeadCrafter)world.getTileEntity(new BlockPos(x,y,z)));
-//		return null;
-//	}
 
 }
