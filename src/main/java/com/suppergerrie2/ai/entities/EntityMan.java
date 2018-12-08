@@ -57,12 +57,13 @@ public class EntityMan extends EntityLiving {
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
         this(worldIn, "BOT");
+        
     }
 
     public EntityMan(World worldIn, String name) {
         super(worldIn);
         this.setCustomNameTag(name);
-
+        setAlwaysRenderNameTag(true);
         GameProfile profile = new GameProfile(this.getUniqueID(), name);
         if (!worldIn.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
@@ -86,7 +87,10 @@ public class EntityMan extends EntityLiving {
     @Override
     public void onUpdate() {
         super.onUpdate();
-
+        
+    	//Updates Animations - By Mechanist
+        updateAction(); 
+        
         if (this.isDead) {
             this.resetMining();
             return;
@@ -101,6 +105,7 @@ public class EntityMan extends EntityLiving {
             RayTraceResult result = this.rayTraceBlockEntity();
 
             if (leftClicking) {
+            	swingArm(EnumHand.MAIN_HAND);
                 leftClick(result);
             } else {
                 lastTickLeftClicked = false;
@@ -116,7 +121,15 @@ public class EntityMan extends EntityLiving {
             }
         }
     }
-
+    
+  //Adds swinging animation - By Mechanist
+    protected void updateAction()
+    {
+        super.updateEntityActionState();
+        this.updateArmSwingProgress();
+        this.rotationYawHead = this.rotationYaw;
+    }
+    
     //TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
     private void pickup(EntityItem item) {
         if (item.cannotPickup()) return;
