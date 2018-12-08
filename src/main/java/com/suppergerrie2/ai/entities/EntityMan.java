@@ -57,13 +57,14 @@ public class EntityMan extends EntityLiving {
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
         this(worldIn, "BOT");
-        
+
     }
 
     public EntityMan(World worldIn, String name) {
         super(worldIn);
         this.setCustomNameTag(name);
-        setAlwaysRenderNameTag(true);
+        this.setAlwaysRenderNameTag(true);
+
         GameProfile profile = new GameProfile(this.getUniqueID(), name);
         if (!worldIn.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
@@ -87,7 +88,7 @@ public class EntityMan extends EntityLiving {
     @Override
     public void onUpdate() {
         super.onUpdate();
-        
+
     	//Updates Animations - By Mechanist
         updateAction(); 
         
@@ -105,7 +106,6 @@ public class EntityMan extends EntityLiving {
             RayTraceResult result = this.rayTraceBlockEntity();
 
             if (leftClicking) {
-            	swingArm(EnumHand.MAIN_HAND);
                 leftClick(result);
             } else {
                 lastTickLeftClicked = false;
@@ -173,10 +173,12 @@ public class EntityMan extends EntityLiving {
         switch (result.typeOfHit) {
             case BLOCK:
                 mine(result.getBlockPos());
+                swingArm(EnumHand.MAIN_HAND);
                 break;
             case ENTITY:
                 if (!lastTickLeftClicked) {
                     fakePlayer.attackTargetEntityWithCurrentItem(result.entityHit);
+                    swingArm(EnumHand.MAIN_HAND);
                 }
             case MISS:
             default:
