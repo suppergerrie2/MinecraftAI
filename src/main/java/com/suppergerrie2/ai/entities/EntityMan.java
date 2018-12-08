@@ -64,7 +64,7 @@ public class EntityMan extends EntityLiving {
         super(worldIn);
         this.setCustomNameTag(name);
         setAlwaysRenderNameTag(true);
-        GameProfile profile = new GameProfile(this.getUniqueID(), name);
+        GameProfile profile = new GameProfile(null, name);
         if (!worldIn.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
         }
