@@ -49,6 +49,7 @@ public class EntityMan extends EntityLiving {
     private boolean lastTickLeftClicked = false;
 
     private final ItemHandlerMan itemHandler;
+    GameProfile profile;
 
     public boolean leftClicking;
 
@@ -57,20 +58,15 @@ public class EntityMan extends EntityLiving {
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
         this(worldIn, "BOT");
-
     }
 
     public EntityMan(World worldIn, String name) {
         super(worldIn);
-      
-        GameProfile profile = new GameProfile(null, name);
-      
+
         this.setCustomNameTag(name);
-        this.setAlwaysRenderNameTag(true);
-      
-        if (!worldIn.isRemote) {
-            fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
-        }
+        setAlwaysRenderNameTag(true);
+
+        profile = new GameProfile(null, name);
 
         this.setAIMoveSpeed(0.3f);
 
@@ -90,6 +86,10 @@ public class EntityMan extends EntityLiving {
     @Override
     public void onUpdate() {
         super.onUpdate();
+
+        if (fakePlayer == null && !world.isRemote) {
+            fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
+        }
 
     	//Updates Animations - By Mechanist
         updateAction(); 

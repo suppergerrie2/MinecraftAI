@@ -10,19 +10,15 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import org.lwjgl.Sys;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class AIEnderManTarget extends EntityAINearestAttackableTarget<EntityMan> {
-    static final Method teleportRandomly = ObfuscationReflectionHelper.findMethod(EntityEnderman.class, "func_70820_n", boolean.class);
-    static final Method teleportToEntity = ObfuscationReflectionHelper.findMethod(EntityEnderman.class, "func_70816_c", boolean.class,  Entity.class);
+    private static final Method teleportRandomly = ObfuscationReflectionHelper.findMethod(EntityEnderman.class, "func_70820_n", boolean.class);
+    private static final Method teleportToEntity = ObfuscationReflectionHelper.findMethod(EntityEnderman.class, "func_70816_c", boolean.class, Entity.class);
 
     private final EntityEnderman taskOwner;
-    /**
-     * The player
-     */
     private EntityMan man;
     private int aggroTime;
     private int teleportTime;
@@ -43,7 +39,7 @@ public class AIEnderManTarget extends EntityAINearestAttackableTarget<EntityMan>
                 this.man = man;
             }
         }
-        System.out.println(this.man);
+
         return this.man != null;
     }
 
@@ -96,7 +92,6 @@ public class AIEnderManTarget extends EntityAINearestAttackableTarget<EntityMan>
                         if (this.targetEntity.getDistanceSq(this.taskOwner) < 16.0D) {
 
                             teleportRandomly.invoke(this.taskOwner);
-//                        this.taskOwner.teleportRandomly();
                         }
 
                         this.teleportTime = 0;
