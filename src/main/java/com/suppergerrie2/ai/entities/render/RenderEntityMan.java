@@ -9,7 +9,7 @@ import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.suppergerrie2.ai.entities.EntityMan;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelPlayer;
-import net.minecraft.client.renderer.entity.RenderLiving;
+import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.server.MinecraftServer;
@@ -21,7 +21,7 @@ import java.net.Proxy;
 import java.util.UUID;
 
 //TODO: Fix small arms! Right now the skins that use small arms dont work
-public class RenderEntityMan extends RenderLiving<EntityMan> {
+public class RenderEntityMan extends RenderBiped<EntityMan> {
     private static PlayerProfileCache playerprofilecache;
     private static MinecraftSessionService service;
 
@@ -35,8 +35,6 @@ public class RenderEntityMan extends RenderLiving<EntityMan> {
             GameProfileRepository gameprofilerepository = yggdrasilauthenticationservice.createProfileRepository();
             playerprofilecache = new PlayerProfileCache(gameprofilerepository, new File(Minecraft.getMinecraft().gameDir, MinecraftServer.USER_CACHE_FILE.getName()));
         }
-
-
     }
 
     @Override
