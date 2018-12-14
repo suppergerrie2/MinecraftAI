@@ -8,6 +8,7 @@ import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.suppergerrie2.ai.entities.EntityMan;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelPlayer;
 import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -16,6 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.ResourceLocation;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.Proxy;
 import java.util.UUID;
@@ -24,6 +26,9 @@ import java.util.UUID;
 public class RenderEntityMan extends RenderBiped<EntityMan> {
     private static PlayerProfileCache playerprofilecache;
     private static MinecraftSessionService service;
+
+    ModelBase modelNormal = new ModelPlayer(0.0f, true);
+    ModelBase modelSlim = new ModelPlayer(0.0f, false);
 
     public RenderEntityMan(RenderManager rendermanagerIn) {
         super(rendermanagerIn, new ModelPlayer(0.0f, false), 0.5f);
@@ -37,13 +42,14 @@ public class RenderEntityMan extends RenderBiped<EntityMan> {
         }
     }
 
+
     @Override
-    protected ResourceLocation getEntityTexture(EntityMan entity) {
+    protected ResourceLocation getEntityTexture(@Nonnull EntityMan entity) {
         if (!entity.playerTexturesLoaded) {
             loadPlayerTextures(entity);
         }
 
-        return (ResourceLocation) MoreObjects.firstNonNull(entity.playerTextures.get(Type.SKIN), DefaultPlayerSkin.getDefaultSkin(entity.getUniqueID()));
+        return MoreObjects.firstNonNull(entity.playerTextures.get(Type.SKIN), DefaultPlayerSkin.getDefaultSkin(entity.getUniqueID()));
     }
 
     private void loadPlayerTextures(EntityMan man) {
