@@ -1,6 +1,5 @@
 package com.suppergerrie2.ai.entities;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
@@ -9,6 +8,9 @@ import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.inventory.ItemHandlerMan;
 import com.suppergerrie2.ai.items.DebugItem;
+import com.suppergerrie2.ai.networking.PacketHandler;
+import com.suppergerrie2.ai.networking.SyncHandsMessage;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
@@ -17,6 +19,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
@@ -27,6 +30,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
@@ -35,7 +40,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public class EntityMan extends EntityLiving {
+public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnData {
 
     public boolean playerTexturesLoaded = false;
     public Map<MinecraftProfileTexture.Type, ResourceLocation> playerTextures = Maps.newEnumMap(MinecraftProfileTexture.Type.class);
@@ -49,7 +54,7 @@ public class EntityMan extends EntityLiving {
     private boolean lastTickLeftClicked = false;
 
     private final ItemHandlerMan itemHandler;
-    GameProfile profile;
+    private GameProfile profile;
 
     public boolean leftClicking;
 
@@ -71,6 +76,7 @@ public class EntityMan extends EntityLiving {
         this.setAIMoveSpeed(0.3f);
 
         itemHandler = new ItemHandlerMan();
+
     }
 
     @Override
@@ -123,9 +129,9 @@ public class EntityMan extends EntityLiving {
             }
         }
     }
-    
-  //Adds swinging animation - By Mechanist
-    protected void updateAction()
+
+    //Adds swinging animation - By Mechanist
+    private void updateAction()
     {
         super.updateEntityActionState();
         this.updateArmSwingProgress();
@@ -140,6 +146,8 @@ public class EntityMan extends EntityLiving {
 
         for (int i = 0; i < this.itemHandler.getSlots() && !stack.isEmpty(); i++) {
             stack = this.itemHandler.insertItem(i, stack, false);
+
+            PacketHandler.INSTANCE.sendToAllTracking(new SyncHandsMessage(this.itemHandler.getStackInSlot(i), getEntityId(), i, selectedItemIndex), this);
         }
 
         this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(this.selectedItemIndex));
@@ -151,10 +159,34 @@ public class EntityMan extends EntityLiving {
 
     @Override
     public void setHeldItem(EnumHand hand, @Nonnull ItemStack stack) {
+        if (world.isRemote) {
+            System.out.println(stack);
+        }
+
         if (stack != this.getHeldItem(hand)) {
             super.setHeldItem(hand, stack);
             fakePlayer.setHeldItem(hand, stack);
+
+            PacketHandler.INSTANCE.sendToAllTracking(new SyncHandsMessage(stack, getEntityId(), selectedItemIndex, selectedItemIndex), this);
         }
+    }
+
+    @Override
+    @Nonnull
+    public ItemStack getItemStackFromSlot(EntityEquipmentSlot slotIn) {
+        switch (slotIn) {
+            case MAINHAND:
+                return this.itemHandler.getStackInSlot(selectedItemIndex);
+            case OFFHAND:
+                return this.itemHandler.getOffhand();
+            case FEET:
+            case LEGS:
+            case CHEST:
+            case HEAD:
+                return super.getItemStackFromSlot(slotIn);
+        }
+
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -306,11 +338,7 @@ public class EntityMan extends EntityLiving {
 
         Vec3d entityPos = null;
 
-        List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, new Predicate<Entity>() {
-            public boolean apply(@Nullable Entity p_apply_1_) {
-                return p_apply_1_ != null && p_apply_1_.canBeCollidedWith();
-            }
-        }));
+        @SuppressWarnings("Guava") List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, e -> e != null && e.canBeCollidedWith()));
         double minEntityDist = distanceFromHit;
 
         for (Entity entity1 : list) {
@@ -383,4 +411,21 @@ public class EntityMan extends EntityLiving {
         return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
     }
 
+    public void setSelectedIndex(int selectedIndex) {
+        this.selectedItemIndex = selectedIndex;
+        this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedIndex));
+    }
+
+    @Override
+    public void writeSpawnData(ByteBuf buffer) {
+        ByteBufUtils.writeItemStack(buffer, itemHandler.getOffhand());
+        buffer.writeInt(selectedItemIndex);
+        ByteBufUtils.writeItemStack(buffer, itemHandler.getStackInSlot(selectedItemIndex));
+    }
+
+    @Override
+    public void readSpawnData(ByteBuf additionalData) {
+        itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
+        itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
+    }
 }
