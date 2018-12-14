@@ -28,8 +28,8 @@ public class RenderEntityMan extends RenderBiped<EntityMan> {
     private static PlayerProfileCache playerprofilecache;
     private static MinecraftSessionService service;
 
-    ModelBase modelNormal = new ModelPlayer(0.0f, false);
-    ModelBase modelSlim = new ModelPlayer(0.0f, true);
+    private ModelBase modelNormal = new ModelPlayer(0.0f, false);
+    private ModelBase modelSlim = new ModelPlayer(0.0f, true);
 
     public RenderEntityMan(RenderManager rendermanagerIn) {
         super(rendermanagerIn, new ModelPlayer(0.0f, false), 0.5f);
