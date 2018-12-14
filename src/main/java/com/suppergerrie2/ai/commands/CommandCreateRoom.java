@@ -17,18 +17,18 @@ public class CommandCreateRoom extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/createroom roomname namespace";
+        return "/createroom roomname namespace simModelNamespace";
     }
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-        if (args.length != 2) {
+        if (args.length != 3) {
             //TODO: Translatable
             sender.sendMessage(new TextComponentString(this.getUsage(sender)));
             return;
         }
 
-        TrainingRoom room = new TrainingRoom(args[0], args[1]);
+        TrainingRoom room = new TrainingRoom(args[0], args[1], args[2]);
         if (MinecraftAI.chaosNetClient.createTrainingRoom(room)) {
             sender.sendMessage(new TextComponentString("Room created!"));
         } else {
