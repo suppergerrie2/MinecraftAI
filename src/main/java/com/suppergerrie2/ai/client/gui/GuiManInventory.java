@@ -32,7 +32,7 @@ public class GuiManInventory extends GuiContainer {
 
         player = inventory;
         entityMan = e;
-        this.xSize = 175;
+        this.xSize = 176;
         this.ySize = 166;
     }
 
