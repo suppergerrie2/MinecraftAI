@@ -8,22 +8,28 @@ import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.suppergerrie2.ai.entities.EntityMan;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelPlayer;
-import net.minecraft.client.renderer.entity.RenderLiving;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.ResourceLocation;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.Proxy;
 import java.util.UUID;
 
 //TODO: Fix small arms! Right now the skins that use small arms dont work
-public class RenderEntityMan extends RenderLiving<EntityMan> {
+public class RenderEntityMan extends RenderBiped<EntityMan> {
     private static PlayerProfileCache playerprofilecache;
     private static MinecraftSessionService service;
+
+    private ModelBase modelNormal = new ModelPlayer(0.0f, false);
+    private ModelBase modelSlim = new ModelPlayer(0.0f, true);
 
     public RenderEntityMan(RenderManager rendermanagerIn) {
         super(rendermanagerIn, new ModelPlayer(0.0f, false), 0.5f);
@@ -35,17 +41,52 @@ public class RenderEntityMan extends RenderLiving<EntityMan> {
             GameProfileRepository gameprofilerepository = yggdrasilauthenticationservice.createProfileRepository();
             playerprofilecache = new PlayerProfileCache(gameprofilerepository, new File(Minecraft.getMinecraft().gameDir, MinecraftServer.USER_CACHE_FILE.getName()));
         }
-
-
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(EntityMan entity) {
+    protected void renderModel(@Nonnull EntityMan man, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
+        modelNormal.isChild = modelSlim.isChild = man.isChild();
+
+        boolean visible = this.isVisible(man);
+        boolean visible2 = !visible && !man.isInvisibleToPlayer(Minecraft.getMinecraft().player);
+
+        if (visible || visible2) {
+            if (!this.bindEntityTexture(man)) {
+                return;
+            }
+
+            if (visible2) {
+                GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+            }
+
+            boolean slim = false;
+            if (man.skinType == null) {
+                slim = DefaultPlayerSkin.getSkinType(man.getUniqueID()).equals("slim");
+            } else {
+                slim = man.skinType.equals("slim");
+            }
+
+            if (slim) {
+                modelSlim.render(man, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+            } else {
+                modelNormal.render(man, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+            }
+
+            if (visible2) {
+                GlStateManager.disableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+            }
+        }
+
+    }
+
+
+    @Override
+    protected ResourceLocation getEntityTexture(@Nonnull EntityMan entity) {
         if (!entity.playerTexturesLoaded) {
             loadPlayerTextures(entity);
         }
 
-        return (ResourceLocation) MoreObjects.firstNonNull(entity.playerTextures.get(Type.SKIN), DefaultPlayerSkin.getDefaultSkin(entity.getUniqueID()));
+        return MoreObjects.firstNonNull(entity.playerTextures.get(Type.SKIN), DefaultPlayerSkin.getDefaultSkin(entity.getUniqueID()));
     }
 
     private void loadPlayerTextures(EntityMan man) {

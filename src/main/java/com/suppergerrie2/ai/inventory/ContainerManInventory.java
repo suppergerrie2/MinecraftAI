@@ -4,10 +4,13 @@ import com.suppergerrie2.ai.entities.EntityMan;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.item.ItemStack;
+
+import javax.annotation.Nonnull;
 
 public class ContainerManInventory extends Container {
 
-    final EntityMan man;
+    private final EntityMan man;
 
     public ContainerManInventory(InventoryPlayer inventory, EntityMan e) {
         man = e;
@@ -26,7 +29,13 @@ public class ContainerManInventory extends Container {
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer playerIn) {
+    public boolean canInteractWith(@Nonnull EntityPlayer playerIn) {
         return true;
+    }
+
+    @Override
+    @Nonnull
+    public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
+        return ItemStack.EMPTY;
     }
 }
