@@ -47,9 +47,11 @@ public class DebugItem extends Item {
     public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target,
                                             EnumHand hand) {
 
+       
+        
         if (target instanceof EntityMan) {
             EntityMan man = (EntityMan) target;
-            man.leftClicking = !man.leftClicking;
+            man.rightClicking = !man.rightClicking;
             return true;
         }
 
