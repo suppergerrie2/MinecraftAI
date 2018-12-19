@@ -49,7 +49,7 @@ public class DebugItem extends Item {
 
         if (target instanceof EntityMan) {
             EntityMan man = (EntityMan) target;
-            man.leftClicking = !man.leftClicking;
+            man.rightClicking = !man.rightClicking;
             return true;
         }
 

@@ -13,16 +13,18 @@ import com.suppergerrie2.ai.networking.SyncHandsMessage;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -30,7 +32,6 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
@@ -59,6 +60,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     private GameProfile profile;
 
     public boolean leftClicking;
+    public boolean rightClicking;
 
     private int selectedItemIndex = 0;
 
@@ -94,15 +96,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     @Override
     public void onUpdate() {
         super.onUpdate();
-       
-        
+
+
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
         }
 
-    	//Updates Animations - By Mechanist
-        updateAction(); 
-       
+        //Updates Animations - By Mechanist
+        updateAction();
+
         if (this.isDead) {
             this.resetMining();
             return;
@@ -117,13 +119,17 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             RayTraceResult result = this.rayTraceBlockEntity();
 
             if (leftClicking) {
-            	
+
                 leftClick(result);
             } else {
                 lastTickLeftClicked = false;
                 if (this.lastMinePos.getY() > 0) {
                     resetMining();
                 }
+            }
+
+            if (rightClicking) {
+                rightClick(result);
             }
 
             List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
@@ -135,13 +141,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     }
 
     //Adds swinging animation - By Mechanist
-    private void updateAction()
-    {
+    private void updateAction() {
         super.updateEntityActionState();
         this.updateArmSwingProgress();
         this.rotationYawHead = this.rotationYaw;
     }
-    
+
     //TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
     private void pickup(EntityItem item) {
         if (item.cannotPickup()) return;
@@ -225,7 +230,105 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
         lastTickLeftClicked = true;
     }
-    
+
+    private void rightClick(RayTraceResult result) {
+        for (EnumHand hand : EnumHand.values()) {
+
+            switch (result.typeOfHit) {
+                case BLOCK:
+                    BlockPos blockpos = result.getBlockPos();
+
+                    if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
+
+                        EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
+
+                        if (enumactionresult == EnumActionResult.SUCCESS) {
+                            this.swingArm(hand);
+
+                            return;
+                        }
+                    }
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            ItemStack itemstack = getHeldItem(hand);
+
+            if (!itemstack.isEmpty() && itemRightClick(hand) == EnumActionResult.SUCCESS) {
+//                this.entityRenderer.itemRenderer.resetEquippedProgress(enumhand);
+                return;
+            }
+        }
+    }
+
+    private EnumActionResult itemRightClick(EnumHand hand) {
+        ItemStack itemstack = getHeldItem(hand);
+
+        if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
+            return EnumActionResult.PASS;
+        } else {
+            int i = itemstack.getCount();
+            ActionResult<ItemStack> actionresult = itemstack.useItemRightClick(world, fakePlayer, hand);
+            ItemStack itemstack1 = actionresult.getResult();
+
+            if (itemstack1 != itemstack || itemstack1.getCount() != i) {
+                this.setHeldItem(hand, itemstack1);
+                if (itemstack1.isEmpty()) {
+                    net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(fakePlayer, itemstack, hand);
+                }
+            }
+
+            return actionresult.getType();
+        }
+    }
+
+    private EnumActionResult rightClickBlock(BlockPos pos, EnumFacing direction, Vec3d vec, EnumHand hand) {
+        ItemStack itemstack = getHeldItem(hand);
+        float f = (float) (vec.x - (double) pos.getX());
+        float f1 = (float) (vec.y - (double) pos.getY());
+        float f2 = (float) (vec.z - (double) pos.getZ());
+        boolean flag = false;
+
+        if (!world.getWorldBorder().contains(pos)) {
+            return EnumActionResult.FAIL;
+        } else {
+
+            EnumActionResult ret = itemstack.onItemUseFirst(fakePlayer, world, pos, hand, direction, f, f1, f2);
+            if (ret != EnumActionResult.PASS) {
+                return ret;
+            }
+
+            IBlockState iblockstate = world.getBlockState(pos);
+            boolean bypass = getHeldItemMainhand().doesSneakBypassUse(world, pos, fakePlayer) && getHeldItemOffhand().doesSneakBypassUse(world, pos, fakePlayer);
+
+            if ((!this.isSneaking() || bypass)) {
+                flag = iblockstate.getBlock().onBlockActivated(world, pos, iblockstate, fakePlayer, hand, direction, f, f1, f2);
+            }
+
+            if (!flag && itemstack.getItem() instanceof ItemBlock) {
+                ItemBlock itemblock = (ItemBlock) itemstack.getItem();
+
+                if (!itemblock.canPlaceBlockOnSide(world, pos, direction, fakePlayer, itemstack)) {
+                    return EnumActionResult.FAIL;
+                }
+            }
+
+            if (!flag) {
+                if (itemstack.isEmpty()) {
+                    return EnumActionResult.PASS;
+                } else if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
+                    return EnumActionResult.PASS;
+                } else {
+                    return itemstack.onItemUse(fakePlayer, world, pos, hand, direction, f, f1, f2);
+                }
+            } else {
+                return EnumActionResult.SUCCESS;
+            }
+        }
+    }
 
     //TODO: Sounds
     private void mine(BlockPos pos) {
