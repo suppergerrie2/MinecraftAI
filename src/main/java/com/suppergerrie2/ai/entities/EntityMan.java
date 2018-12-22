@@ -21,7 +21,6 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
@@ -60,10 +59,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     private GameProfile profile;
 
     public boolean leftClicking;
-    public boolean rightClicking;
-    
+
     private int selectedItemIndex = 0;
-	
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
@@ -128,9 +125,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     resetMining();
                 }
             }
-        if(rightClicking) {
-        	rightClick(result);
-        }
+
             List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
 
             for (EntityItem item : items) {
@@ -231,25 +226,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         lastTickLeftClicked = true;
     }
     
-    private void rightClick(RayTraceResult result) {
-    	
-    	 ItemStack itemstack = this.getHeldItem(EnumHand.MAIN_HAND);
-         float f = (float)(result.hitVec.x - (double)result.getBlockPos().getX());
-         float f1 = (float)(result.hitVec.y - (double)result.getBlockPos().getY());
-         float f2 = (float)(result.hitVec.z - (double)result.getBlockPos().getZ());
-         
-    	 switch (result.typeOfHit) {
-         case BLOCK:
-        	 BlockPos blockpos = new BlockPos(f, f1, f2);
-        	 EnumFacing f3 = EnumFacing.getFacingFromVector(f, f1, f2);
-        	 itemstack.getItem().onItemUse(fakePlayer, world, blockpos, EnumHand.MAIN_HAND, f3, f, f1, f2);
-    	break;
-    	
-		default:
-			break;
-    	}
-    }
-   
 
     //TODO: Sounds
     private void mine(BlockPos pos) {
