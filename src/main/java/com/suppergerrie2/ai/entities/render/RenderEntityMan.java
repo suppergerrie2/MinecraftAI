@@ -23,7 +23,6 @@ import java.io.File;
 import java.net.Proxy;
 import java.util.UUID;
 
-//TODO: Fix small arms! Right now the skins that use small arms dont work
 public class RenderEntityMan extends RenderBiped<EntityMan> {
     private static PlayerProfileCache playerprofilecache;
     private static MinecraftSessionService service;
@@ -59,7 +58,7 @@ public class RenderEntityMan extends RenderBiped<EntityMan> {
                 GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
             }
 
-            boolean slim = false;
+            boolean slim;
             if (man.skinType == null) {
                 slim = DefaultPlayerSkin.getSkinType(man.getUniqueID()).equals("slim");
             } else {

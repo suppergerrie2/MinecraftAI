@@ -1,31 +1,24 @@
 package com.suppergerrie2.ai.client.gui;
 
-import java.io.IOException;
-
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.inventory.ContainerManInventory;
 import com.suppergerrie2.ai.networking.MineAndPlace;
 import com.suppergerrie2.ai.networking.PacketHandler;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.BossInfo.Color;
-import net.minecraft.world.World;
-import scala.actors.remote.SendTo;
+
+import java.io.IOException;
 
 public class GuiManInventory extends GuiContainer {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Reference.MODID, "textures/gui/inventory.png");
-	private static final int mou = 0;
     private final InventoryPlayer player;
     private final EntityMan entityMan;
     private GuiButton mine;
     private GuiButton place;
-    
-    PacketHandler h = new PacketHandler();
     
     public GuiManInventory(InventoryPlayer inventory, EntityMan e) {
         super(new ContainerManInventory(inventory, e));
@@ -33,7 +26,7 @@ public class GuiManInventory extends GuiContainer {
         player = inventory;
         entityMan = e;
         this.xSize = 176;
-        this.ySize = 166;
+        this.ySize = 184;
     }
 
     @Override
@@ -44,11 +37,7 @@ public class GuiManInventory extends GuiContainer {
        this.place = this.addButton(new GuiButton( 1, this.guiLeft + 79, this.guiTop + 27, 90, 20, "Place"));
        this.mine.enabled=true;
        this.place.enabled=true;
-       
-       
     }
-    
-   
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
@@ -72,15 +61,13 @@ public class GuiManInventory extends GuiContainer {
    protected void actionPerformed(GuiButton button) throws IOException {
 	   if (button.enabled)
        {
-		   if (button.id == 0) {
-			   
-			   EntityMan man = this.entityMan;
-			   
-			   
-			   
-			   h.INSTANCE.sendToServer(new MineAndPlace(man.getEntityId()));
+           if (button.id == mine.id) {
+               PacketHandler.INSTANCE.sendToServer(new MineAndPlace(this.entityMan.getEntityId(), MineAndPlace.Action.TOGGLE_MINE));
 			   return;
-		   }
+           } else if (button.id == place.id) {
+               PacketHandler.INSTANCE.sendToServer(new MineAndPlace(this.entityMan.getEntityId(), MineAndPlace.Action.TOGGLE_PLACE));
+               return;
+           }
        }
 	   super.actionPerformed(button);
    }
