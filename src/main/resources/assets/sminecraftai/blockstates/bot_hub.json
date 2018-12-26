@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "normal": [
+            { "model": "sminecraftai:bot_hub" }
+        ]
+    }
+}

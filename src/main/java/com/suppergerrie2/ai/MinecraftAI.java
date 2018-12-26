@@ -4,6 +4,7 @@ import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ai.commands.CommandCreateRoom;
 import com.suppergerrie2.ai.commands.CommandGetRooms;
 import com.suppergerrie2.ai.commands.CommandLogin;
+import com.suppergerrie2.ai.init.ModBlocks;
 import com.suppergerrie2.ai.networking.PacketHandler;
 import com.suppergerrie2.ai.proxies.IProxy;
 import net.minecraftforge.fml.common.Mod;
@@ -28,7 +29,7 @@ public class MinecraftAI {
 
     public static Logger logger;
     public static ChaosNetClient chaosNetClient = new ChaosNetClient();
-
+    
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
@@ -36,6 +37,7 @@ public class MinecraftAI {
         proxy.preInit(event);
         PacketHandler.registerMessages();
         logger.info("preInit");
+        ModBlocks.init();
     }
 
     @EventHandler
