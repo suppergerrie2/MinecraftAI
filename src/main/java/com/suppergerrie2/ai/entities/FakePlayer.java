@@ -38,5 +38,4 @@ public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
 
     }
 
-  
 }

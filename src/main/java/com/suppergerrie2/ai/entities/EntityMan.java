@@ -13,15 +13,14 @@ import com.suppergerrie2.ai.networking.SyncHandsMessage;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.EntityEquipmentSlot;
-
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
@@ -31,6 +30,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
@@ -59,7 +59,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     private GameProfile profile;
 
     public boolean leftClicking;
- 
+
     private int selectedItemIndex = 0;
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
@@ -94,15 +94,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     @Override
     public void onUpdate() {
         super.onUpdate();
-
-
+       
+        
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
         }
 
-        //Updates Animations - By Mechanist
-        updateAction();
-
+    	//Updates Animations - By Mechanist
+        updateAction(); 
+       
         if (this.isDead) {
             this.resetMining();
             return;
@@ -117,7 +117,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             RayTraceResult result = this.rayTraceBlockEntity();
 
             if (leftClicking) {
-
+            	
                 leftClick(result);
             } else {
                 lastTickLeftClicked = false;
@@ -125,7 +125,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     resetMining();
                 }
             }
-   
+
             List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
 
             for (EntityItem item : items) {
@@ -134,12 +134,14 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
     }
 
-    private void updateAction() {
+    //Adds swinging animation - By Mechanist
+    private void updateAction()
+    {
         super.updateEntityActionState();
         this.updateArmSwingProgress();
         this.rotationYawHead = this.rotationYaw;
     }
-
+    
     //TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
     private void pickup(EntityItem item) {
         if (item.cannotPickup()) return;
@@ -223,7 +225,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
         lastTickLeftClicked = true;
     }
-
+    
 
     //TODO: Sounds
     private void mine(BlockPos pos) {

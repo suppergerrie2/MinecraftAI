@@ -47,7 +47,6 @@ public class TileEntityBotHub extends TileEntity implements ITickable{
 
 	        world.spawnEntity(man);
 	        a.add(man.getUniqueID());
-	        System.out.println("UUID " + a + "Size " + a.size());
 	        a.removeIf((id)->((WorldServer)world).getEntityFromUuid(id)==null);
 	        
 	        
