@@ -24,7 +24,6 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -40,8 +39,10 @@ import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnData {
 
@@ -49,7 +50,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public Map<MinecraftProfileTexture.Type, ResourceLocation> playerTextures = Maps.newEnumMap(MinecraftProfileTexture.Type.class);
     public String skinType;
 
-    private FakePlayer fakePlayer;
+    public FakePlayer fakePlayer;
 
     private int miningTicks = 0;
     private BlockPos lastMinePos = BlockPos.ORIGIN.down();
@@ -61,6 +62,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     public boolean leftClicking;
     public boolean rightClicking;
+    int rightClickDelay = 0;
 
     private int selectedItemIndex = 0;
 
@@ -79,7 +81,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         this.setAIMoveSpeed(0.3f);
 
-        itemHandler = new ItemHandlerMan();
+        itemHandler = new ItemHandlerMan(this);
 
     }
 
@@ -100,6 +102,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
+            for (int i = 0; i < itemHandler.getSlots(); i++) {
+                fakePlayer.inventory.setInventorySlotContents(i, itemHandler.getStackInSlot(i));
+            }
         }
 
         //Updates Animations - By Mechanist
@@ -108,12 +113,16 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (this.isDead) {
             this.resetMining();
             return;
+
         }
 
         if (!world.isRemote) {
+            if (rightClickDelay > 0) rightClickDelay--;
+
             this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedItemIndex));
 
-            fakePlayer.setPosition(posX, posY, posZ);
+//            fakePlayer.setPosition(posX, posY, posZ);
+            fakePlayer.setPositionAndRotation(posX, posY, posZ, rotationYaw, rotationPitch);
             fakePlayer.onUpdate();
 
             RayTraceResult result = this.rayTraceBlockEntity();
@@ -128,8 +137,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 }
             }
 
-            if (rightClicking) {
+            if (rightClicking && rightClickDelay == 0) {
                 rightClick(result);
+            } else if (this.isHandActive() || fakePlayer.isHandActive()) {
+                stopActiveHand();
+                fakePlayer.stopActiveHand();
             }
 
             List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
@@ -147,7 +159,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         this.rotationYawHead = this.rotationYaw;
     }
 
-    //TODO: Check if this works with different kind of items. But I'm going to make a gui for that first
     private void pickup(EntityItem item) {
         if (item.cannotPickup()) return;
 
@@ -168,10 +179,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void setHeldItem(EnumHand hand, @Nonnull ItemStack stack) {
-        if (world.isRemote) {
-            System.out.println(stack);
-        }
-
         if (stack != this.getHeldItem(hand)) {
             super.setHeldItem(hand, stack);
             fakePlayer.setHeldItem(hand, stack);
@@ -231,7 +238,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         lastTickLeftClicked = true;
     }
 
+
+    //A lot of items are broken... Bows shoot, but it hits itself, enderpearls crash the game and I suspect a lot more items will be broken
+    //But block placement works and some other items work as well
+    //TODO: Entity interaction maybe?
     private void rightClick(RayTraceResult result) {
+        this.rightClickDelay = 4;
         for (EnumHand hand : EnumHand.values()) {
 
             switch (result.typeOfHit) {
@@ -248,6 +260,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                             return;
                         }
                     }
+
+                    List<UUID> uuids = new ArrayList<>();
 
                     break;
 

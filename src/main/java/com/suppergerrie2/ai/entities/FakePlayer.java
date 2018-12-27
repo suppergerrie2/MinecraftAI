@@ -24,11 +24,13 @@ public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
             if (this.getAttributeMap().getAttributeInstance(ati.getAttribute()) == null)
                 this.getAttributeMap().registerAttribute(ati.getAttribute()).setBaseValue(ati.getBaseValue());
         }
+
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
+        updateActiveHand();
         this.ticksSinceLastSwing++;
 
         for (IAttributeInstance attribute : masterMan.getAttributeMap().getAllAttributes()) {
