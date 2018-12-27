@@ -26,7 +26,7 @@ public class MineAndPlaceHandler implements IMessageHandler<MineAndPlace, IMessa
                         man.leftClicking = !man.leftClicking;
                         break;
                     case TOGGLE_PLACE:
-                        //TODO: Placing!
+                        man.rightClicking = !man.rightClicking;
                         break;
                 }
             }

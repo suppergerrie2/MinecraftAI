@@ -23,7 +23,6 @@ public class ClientProxy implements IProxy {
             }
         });
 
-
     }
 
     @Override

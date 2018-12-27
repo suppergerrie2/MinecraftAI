@@ -18,8 +18,6 @@ public class SyncHandsMessageHandler implements IMessageHandler<SyncHandsMessage
 
             if (e instanceof EntityMan) {
                 EntityMan man = (EntityMan) e;
-                System.out.println(message.inventoryIndex);
-                System.out.println(message.stack);
                 ((ItemHandlerMan) man.getItemHandler()).setStackInSlot(message.inventoryIndex, message.stack);
                 man.setSelectedIndex(message.selectedIndex);
             }
