@@ -27,7 +27,7 @@ public class CommandGetRooms extends CommandBase {
             return;
         }
 
-        TrainingRoom[] rooms = MinecraftAI.chaosNetClient.getTrainingRooms();
+        TrainingRoom[] rooms = MinecraftAI.instance.client.getTrainingRooms();
 
         if (rooms != null) {
             for (TrainingRoom room : rooms) {

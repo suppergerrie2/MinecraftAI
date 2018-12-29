@@ -4,8 +4,10 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
+import com.suppergerrie2.ai.chaosnet.NOOPOrganism;
 import com.suppergerrie2.ai.inventory.ItemHandlerMan;
 import com.suppergerrie2.ai.items.DebugItem;
 import com.suppergerrie2.ai.networking.PacketHandler;
@@ -66,12 +68,14 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     int rightClickDelay = 0;
 
     private int selectedItemIndex = 0;
+    private Organism organism;
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
         this(worldIn, "BOT");
     }
 
+    @Deprecated
     public EntityMan(World worldIn, String name) {
         super(worldIn);
 
@@ -83,7 +87,13 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         this.setAIMoveSpeed(0.3f);
 
         itemHandler = new ItemHandlerMan(this);
+        this.organism = NOOPOrganism.INSTANCE;
+    }
 
+    public EntityMan(World world, Organism organism) {
+        this(world, organism.getName());
+
+        this.organism = organism;
     }
 
     @Override
@@ -99,7 +109,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     @Override
     public void onUpdate() {
         super.onUpdate();
-
 
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
@@ -122,14 +131,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedItemIndex));
 
-//            fakePlayer.setPosition(posX, posY, posZ);
             fakePlayer.setPositionAndRotation(posX, posY, posZ, rotationYaw, rotationPitch);
             fakePlayer.onUpdate();
 
             RayTraceResult result = this.rayTraceBlockEntity();
 
             if (leftClicking) {
-
                 leftClick(result);
             } else {
                 lastTickLeftClicked = false;

@@ -38,7 +38,7 @@ public class CommandLogin extends CommandBase {
         }
 
         try {
-            MinecraftAI.chaosNetClient.authenticate(args[0], args[1], saveCode);
+            MinecraftAI.instance.client.authenticate(args[0], args[1], saveCode);
             sender.sendMessage(new TextComponentString("Login succeeded!!"));
         } catch (IOException e) {
             e.printStackTrace();

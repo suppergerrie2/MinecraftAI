@@ -1,9 +1,11 @@
 package com.suppergerrie2.ai;
 
 import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
+import com.suppergerrie2.ChaosNetClient.components.Session;
 import com.suppergerrie2.ai.commands.CommandCreateRoom;
 import com.suppergerrie2.ai.commands.CommandGetRooms;
 import com.suppergerrie2.ai.commands.CommandLogin;
+import com.suppergerrie2.ai.commands.CommandStartSession;
 import com.suppergerrie2.ai.init.ModBlocks;
 import com.suppergerrie2.ai.networking.PacketHandler;
 import com.suppergerrie2.ai.proxies.IProxy;
@@ -28,8 +30,9 @@ public class MinecraftAI {
     public static IProxy proxy;
 
     public static Logger logger;
-    public static ChaosNetClient chaosNetClient = new ChaosNetClient();
-    
+    public ChaosNetClient client = new ChaosNetClient();
+    public Session session = null;
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
@@ -59,6 +62,7 @@ public class MinecraftAI {
         event.registerServerCommand(new CommandLogin());
         event.registerServerCommand(new CommandGetRooms());
         event.registerServerCommand(new CommandCreateRoom());
+        event.registerServerCommand(new CommandStartSession());
     }
 
 }
