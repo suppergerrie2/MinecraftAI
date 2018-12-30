@@ -31,7 +31,7 @@ public class CommandGetRooms extends CommandBase {
 
         if (rooms != null) {
             for (TrainingRoom room : rooms) {
-                sender.sendMessage(new TextComponentString("Room: " + room.roomName + " by " + room.ownerName));
+                sender.sendMessage(new TextComponentString("Room: " + room.roomName + " | " + room.ownerName + " | " + room.simulationModelNamespace + " | " + room.namespace));
             }
         } else {
             sender.sendMessage(new TextComponentString("Error while getting rooms!"));

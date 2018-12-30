@@ -4,7 +4,7 @@ import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.BasicNeuron;
 import com.suppergerrie2.ChaosNetClient.components.nnet.NeuralNetwork;
 
-public class NOOPOrganism extends Organism {
+public class NOOPOrganism extends SupperCraftOrganism {
 
     public static NOOPOrganism INSTANCE = new NOOPOrganism();
 
@@ -19,8 +19,8 @@ public class NOOPOrganism extends Organism {
     }
 
     @Override
-    public BasicNeuron[] evaluate() {
-        return new BasicNeuron[0];
+    public NeuralNetwork.Output[] evaluate() {
+        return new NeuralNetwork.Output[0];
     }
 
     @Override

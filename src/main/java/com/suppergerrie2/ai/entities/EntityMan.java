@@ -5,9 +5,12 @@ import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
+import com.suppergerrie2.ChaosNetClient.components.nnet.BasicNeuron;
+import com.suppergerrie2.ChaosNetClient.components.nnet.NeuralNetwork;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.chaosnet.NOOPOrganism;
+import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
 import com.suppergerrie2.ai.inventory.ItemHandlerMan;
 import com.suppergerrie2.ai.items.DebugItem;
 import com.suppergerrie2.ai.networking.PacketHandler;
@@ -38,6 +41,7 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import org.lwjgl.Sys;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -68,7 +72,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     int rightClickDelay = 0;
 
     private int selectedItemIndex = 0;
-    private Organism organism;
+    private SupperCraftOrganism organism;
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
@@ -93,7 +97,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public EntityMan(World world, Organism organism) {
         this(world, organism.getName());
 
-        this.organism = organism;
+        this.organism = (SupperCraftOrganism) organism;
     }
 
     @Override
@@ -127,6 +131,29 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
 
         if (!world.isRemote) {
+            NeuralNetwork.Output[] networkOutput = organism.evaluate();
+
+            for(NeuralNetwork.Output output : networkOutput) {
+                switch (output.type) {
+                    case "JumpOutput":
+//                        System.out.println(this.getName());
+//                        System.out.println(output.value>0);
+                        System.out.println(this.isJumping);
+                        this.jumpHelper.setJumping();
+                        System.out.println(this.isJumping);
+                        break;
+                    case "CraftOutput":
+                        //TODO: Crafting, client will need to be changed so we know what to craft
+                        break;
+                    case "TurnOutput":
+                        break;
+                    case "WalkSidewaysOutput":
+                        break;
+                    case "WalkForwardOutput":
+                        break;
+                }
+            }
+
             if (rightClickDelay > 0) rightClickDelay--;
 
             this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedItemIndex));

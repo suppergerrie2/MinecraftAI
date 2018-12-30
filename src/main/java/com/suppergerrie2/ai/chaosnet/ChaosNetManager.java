@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ChaosNetManager extends Thread {
 
-    public ChaosNetClient client = new ChaosNetClient();
-
     ConcurrentLinkedQueue<Organism> organisms = new ConcurrentLinkedQueue<>();
 
     int organismsRequested = 0;
