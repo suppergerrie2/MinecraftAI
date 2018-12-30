@@ -47,6 +47,7 @@ import java.util.UUID;
 public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnData {
 
     public boolean playerTexturesLoaded = false;
+    public boolean isTextureLoading = false;
     public Map<MinecraftProfileTexture.Type, ResourceLocation> playerTextures = Maps.newEnumMap(MinecraftProfileTexture.Type.class);
     public String skinType;
 

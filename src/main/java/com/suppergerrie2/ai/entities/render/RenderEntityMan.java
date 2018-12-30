@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.ResourceLocation;
@@ -89,20 +90,52 @@ public class RenderEntityMan extends RenderBiped<EntityMan> {
     }
 
     private void loadPlayerTextures(EntityMan man) {
-        synchronized (this) {
-            if (!man.playerTexturesLoaded) {
-                GameProfile profile = playerprofilecache.getGameProfileForUsername(man.getName());
 
-                if (profile == null) {
-                    profile = new GameProfile(man.getUniqueID(), man.getName());
-                }
+        if (!man.isTextureLoading) {
+            man.isTextureLoading = true;
+            new Thread(new SkinLoader(man.getName(), man.getUniqueID(), man.getEntityId(), playerprofilecache, service), "SkinLoader" + man.getName()).start();
+        }
+    }
 
-                if (!profile.getProperties().containsKey("textures")) {
-                    service.fillProfileProperties(profile, true);
-                }
+}
+
+class SkinLoader implements Runnable {
+    private PlayerProfileCache playerprofilecache;
+    private MinecraftSessionService service;
+
+    private String name;
+    private UUID uuid;
+    private int entityID;
+
+    SkinLoader(String name, UUID uniqueID, int id, PlayerProfileCache playerProfileCache, MinecraftSessionService service) {
+        this.name = name;
+        this.uuid = uniqueID;
+        this.playerprofilecache = playerProfileCache;
+        this.service = service;
+        this.entityID = id;
+    }
+
+    @Override
+    public void run() {
+        GameProfile profile = getGameProfileForUsername(playerprofilecache, name);
+
+        if (profile == null) {
+            profile = new GameProfile(uuid, name);
+        }
+
+        if (!profile.getProperties().containsKey("textures")) {
+            service.fillProfileProperties(profile, true);
+        }
+
+        GameProfile finalProfile = profile;
+        Minecraft.getMinecraft().addScheduledTask(() -> {
+            Entity e = Minecraft.getMinecraft().world.getEntityByID(entityID);
+            if (e instanceof EntityMan) {
+                EntityMan man = (EntityMan) e;
 
                 man.playerTexturesLoaded = true;
-                Minecraft.getMinecraft().getSkinManager().loadProfileTextures(profile, (typeIn, location, profileTexture) -> {
+                man.isTextureLoading = false;
+                Minecraft.getMinecraft().getSkinManager().loadProfileTextures(finalProfile, (typeIn, location, profileTexture) -> {
                     switch (typeIn) {
                         case SKIN:
                             man.playerTextures.put(Type.SKIN, location);
@@ -120,8 +153,12 @@ public class RenderEntityMan extends RenderBiped<EntityMan> {
                             man.playerTextures.put(Type.ELYTRA, location);
                     }
                 }, true);
+
             }
-        }
+        });
     }
 
+    private synchronized static GameProfile getGameProfileForUsername(PlayerProfileCache playerprofilecache, String name) {
+        return playerprofilecache.getGameProfileForUsername(name);
+    }
 }
