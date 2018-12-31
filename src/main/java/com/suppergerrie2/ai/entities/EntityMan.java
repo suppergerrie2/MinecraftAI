@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
-import com.suppergerrie2.ChaosNetClient.components.nnet.BasicNeuron;
 import com.suppergerrie2.ChaosNetClient.components.nnet.NeuralNetwork;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
@@ -30,10 +29,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.capabilities.Capability;
@@ -41,7 +37,6 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import org.lwjgl.Sys;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,6 +77,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     @Deprecated
     public EntityMan(World worldIn, String name) {
         super(worldIn);
+        this.enablePersistence();
+
+        if (name.length() == 0) name = "BOT";
 
         this.setCustomNameTag(name);
         setAlwaysRenderNameTag(true);
@@ -133,26 +131,39 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (!world.isRemote) {
             NeuralNetwork.Output[] networkOutput = organism.evaluate();
 
+            double forward = 0;
+            double strafe = 0;
+
             for(NeuralNetwork.Output output : networkOutput) {
                 switch (output.type) {
                     case "JumpOutput":
-//                        System.out.println(this.getName());
-//                        System.out.println(output.value>0);
-                        System.out.println(this.isJumping);
                         this.jumpHelper.setJumping();
-                        System.out.println(this.isJumping);
                         break;
                     case "CraftOutput":
-                        //TODO: Crafting, client will need to be changed so we know what to craft
+                        int recipeID = (int) output.extraData.get("recipeID");
                         break;
                     case "TurnOutput":
+                        //TODO: Someway to decide to turn horizontal or turn vertical
                         break;
                     case "WalkSidewaysOutput":
+                        if (output.value > 0.5) {
+                            strafe = 1 * output.value;
+                        } else if (output.value < 0.5) {
+                            strafe = -1 * output.value;
+                        }
                         break;
                     case "WalkForwardOutput":
+                        if (output.value > 0.5) {
+                            forward = 1 * output.value;
+                        } else if (output.value < 0.5) {
+                            forward = -1 * output.value;
+                        }
                         break;
                 }
             }
+
+            //This messes with the knockback, may need to change this
+            this.travel((float) MathHelper.clamp(strafe, -2, 2), 0, (float) MathHelper.clamp(forward, -2, 2));
 
             if (rightClickDelay > 0) rightClickDelay--;
 

@@ -1,7 +1,9 @@
 package com.suppergerrie2.ai.chaosnet.neurons;
 
 import com.google.gson.JsonObject;
+import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.BasicNeuron;
+import com.suppergerrie2.ChaosNetClient.components.nnet.NeuralNetwork;
 
 public class CraftOutputNeuron extends BasicNeuron {
 
@@ -14,5 +16,14 @@ public class CraftOutputNeuron extends BasicNeuron {
         neuron.recipeID = object.get("recipeId").getAsInt();
 
         return neuron;
+    }
+
+    @Override
+    public NeuralNetwork.Output getOutput(Organism owner) {
+        NeuralNetwork.Output output = super.getOutput(owner);
+
+        output.extraData.put("recipeID", recipeID);
+
+        return output;
     }
 }
