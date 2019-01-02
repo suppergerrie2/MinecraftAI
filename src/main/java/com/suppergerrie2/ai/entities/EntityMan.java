@@ -162,8 +162,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 }
             }
 
-            //This messes with the knockback, may need to change this
-            this.travel((float) MathHelper.clamp(strafe, -2, 2), 0, (float) MathHelper.clamp(forward, -2, 2));
+            this.moveStrafing = (float) MathHelper.clamp(strafe, -1, 1);
+            this.moveForward = (float) MathHelper.clamp(forward, -1, 1);
 
             if (rightClickDelay > 0) rightClickDelay--;
 
