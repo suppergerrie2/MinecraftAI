@@ -2,9 +2,8 @@ package com.suppergerrie2.ai;
 
 import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.Session;
-import com.suppergerrie2.ChaosNetClient.components.nnet.BasicNeuron;
+import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
-import com.suppergerrie2.ai.chaosnet.Eye;
 import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
 import com.suppergerrie2.ai.chaosnet.neurons.EyeNeuron;
 import com.suppergerrie2.ai.commands.CommandCreateRoom;
@@ -52,11 +51,14 @@ public class MinecraftAI {
         //Register neuron types:
         client.registerNeuronType("BlockPositionInput", new EyeNeuron());
 
-        client.registerNeuronType("JumpOutput", new BasicNeuron());
+        client.registerNeuronType("JumpOutput", new OutputNeuron());
         client.registerNeuronType("CraftOutput", new CraftOutputNeuron());
-        client.registerNeuronType("TurnOutput", new BasicNeuron());
-        client.registerNeuronType("WalkSidewaysOutput", new BasicNeuron());
-        client.registerNeuronType("WalkForwardOutput", new BasicNeuron());
+        client.registerNeuronType("TurnYawOutput", new OutputNeuron());
+        client.registerNeuronType("TurnPitchOutput", new OutputNeuron());
+        client.registerNeuronType("LeftClickOutput", new OutputNeuron());
+        client.registerNeuronType("RightClickOutput", new OutputNeuron());
+        client.registerNeuronType("WalkSidewaysOutput", new OutputNeuron());
+        client.registerNeuronType("WalkForwardOutput", new OutputNeuron());
 
     }
 

@@ -5,11 +5,13 @@ import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
-import com.suppergerrie2.ChaosNetClient.components.nnet.NeuralNetwork;
+import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
+import com.suppergerrie2.ai.EventHandler;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.chaosnet.NOOPOrganism;
 import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
+import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
 import com.suppergerrie2.ai.inventory.ItemHandlerMan;
 import com.suppergerrie2.ai.items.DebugItem;
 import com.suppergerrie2.ai.networking.PacketHandler;
@@ -22,6 +24,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -37,6 +40,7 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import org.lwjgl.Sys;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,12 +94,21 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         itemHandler = new ItemHandlerMan(this);
         this.organism = NOOPOrganism.INSTANCE;
+
+        this.moveHelper = new EntityMoveHelper(this) {
+            @Override
+            public void onUpdateMoveHelper() {
+                //NO-OP this so it doesnt reset move forward
+            }
+        };
+
     }
 
     public EntityMan(World world, Organism organism) {
         this(world, organism.getName());
 
         this.organism = (SupperCraftOrganism) organism;
+        this.organism.setOwner(this);
     }
 
     @Override
@@ -110,6 +123,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
+        this.renderYawOffset = 0;
         super.onUpdate();
 
         if (fakePlayer == null && !world.isRemote) {
@@ -129,21 +143,31 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
 
         if (!world.isRemote) {
-            NeuralNetwork.Output[] networkOutput = organism.evaluate();
+            OutputNeuron[] networkOutput = organism.evaluate();
 
             double forward = 0;
             double strafe = 0;
 
-            for(NeuralNetwork.Output output : networkOutput) {
-                switch (output.type) {
+            for (OutputNeuron output : networkOutput) {
+                switch (output.getType()) {
                     case "JumpOutput":
-                        this.jumpHelper.setJumping();
+                        if (output.getValue() > 0.5) {
+                            this.jumpHelper.setJumping();
+                        }
                         break;
                     case "CraftOutput":
-                        int recipeID = (int) output.extraData.get("recipeID");
+                        int recipeID = ((CraftOutputNeuron) output).recipeID;
                         break;
-                    case "TurnOutput":
-                        //TODO: Someway to decide to turn horizontal or turn vertical
+                    case "TurnPitchOutput":
+                        if (output.getValue() > 0.5 || output.getValue() < 0.5) {
+                            //TODO: This doesn't work
+                            this.setRotation(this.rotationYaw, (float) (this.rotationPitch + output.getValue()));
+                        }
+                        break;
+                    case "TurnYawOutput":
+                        if (output.getValue() > 0.5 || output.getValue() < 0.5) {
+                            this.setRotation((float) (this.rotationYaw + output.getValue()), this.rotationPitch);
+                        }
                         break;
                     case "WalkSidewaysOutput":
                         if (output.value > 0.5) {
@@ -172,7 +196,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             fakePlayer.setPositionAndRotation(posX, posY, posZ, rotationYaw, rotationPitch);
             fakePlayer.onUpdate();
 
-            RayTraceResult result = this.rayTraceBlockEntity();
+            RayTraceResult result = this.rayTraceBlockEntity(0,0);
+//            this.rayTraceBlockEntity((float) Math.toRadians(90  ),0);
 
             if (leftClicking) {
                 leftClick(result);
@@ -200,10 +225,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     //Adds swinging animation - By Mechanist
     private void updateAction() {
-        super.updateEntityActionState();
+//        super.updateEntityActionState();
         this.updateArmSwingProgress();
-        this.rotationYawHead = this.rotationYaw;
+//        this.rotationYawHead = this.rotationYaw;
     }
+
 
     private void pickup(EntityItem item) {
         if (item.cannotPickup()) return;
@@ -481,11 +507,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
     }
 
-    private RayTraceResult rayTraceBlockEntity() {
+    private RayTraceResult rayTraceBlockEntity(float rotatePitch, float rotateYaw) {
         Entity pointedEntity = null;
 
         double reachDistance = (double) this.getBlockReachDistance();
-        RayTraceResult raytrace = this.rayTrace(reachDistance);
+        RayTraceResult raytrace = this.rayTrace(reachDistance, rotatePitch, rotateYaw);
         Vec3d eyePosition = this.getPositionEyes(1);
 
         boolean flag = false;
@@ -501,7 +527,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             distanceFromHit = raytrace.hitVec.distanceTo(eyePosition);
         }
 
-        Vec3d lookVector = this.getLook(1.0F);
+        Vec3d lookVector = this.getLook(1.0F).rotatePitch(rotatePitch).rotateYaw(rotateYaw);
         Vec3d scaledLookVector = eyePosition.add(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
 
         Vec3d entityPos = null;
@@ -545,14 +571,22 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (pointedEntity != null && (minEntityDist < distanceFromHit || raytrace == null)) {
             raytrace = new RayTraceResult(pointedEntity, entityPos);
         }
+
+
+        EventHandler.addRayTraceDebug(new EventHandler.RayTraceDebug(raytrace, this.getPositionVector().add(0,this.getEyeHeight(), 0)));
+
         return raytrace;
     }
 
-    private RayTraceResult rayTrace(double blockReachDistance) {
+    private RayTraceResult rayTrace(double blockReachDistance, float rotatePitch, float rotateYaw) {
         Vec3d vec3d = this.getPositionEyes(1);
-        Vec3d vec3d1 = this.getLook(1);
+//        Vec3d vec3d1 = this.getLook(1).rotateYaw(rotateYaw).rotatePitch(rotatePitch);
+        System.out.println(rotationYawHead);
+        Vec3d vec3d1 = new Vec3d(0,0,1).rotateYaw((float) Math.toRadians(-rotationYawHead+rotateYaw));
         Vec3d vec3d2 = vec3d.add(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
-        return this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
+        RayTraceResult result = this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
+
+        return result;
     }
 
     private float getBlockReachDistance() {

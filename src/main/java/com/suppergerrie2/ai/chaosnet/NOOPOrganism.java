@@ -1,8 +1,7 @@
 package com.suppergerrie2.ai.chaosnet;
 
-import com.suppergerrie2.ChaosNetClient.components.Organism;
-import com.suppergerrie2.ChaosNetClient.components.nnet.BasicNeuron;
 import com.suppergerrie2.ChaosNetClient.components.nnet.NeuralNetwork;
+import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 
 public class NOOPOrganism extends SupperCraftOrganism {
 
@@ -19,8 +18,8 @@ public class NOOPOrganism extends SupperCraftOrganism {
     }
 
     @Override
-    public NeuralNetwork.Output[] evaluate() {
-        return new NeuralNetwork.Output[0];
+    public OutputNeuron[] evaluate() {
+        return new OutputNeuron[0];
     }
 
     @Override
