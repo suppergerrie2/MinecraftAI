@@ -32,7 +32,7 @@ public class CommandLogin extends CommandBase {
             return;
         }
 
-        boolean saveCode = false;
+        boolean saveCode = true;
         if (args.length == 3) {
             saveCode = Boolean.parseBoolean(args[2]);
         }
