@@ -3,6 +3,8 @@ package com.suppergerrie2.ai.entities;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
@@ -22,11 +24,13 @@ public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
             if (this.getAttributeMap().getAttributeInstance(ati.getAttribute()) == null)
                 this.getAttributeMap().registerAttribute(ati.getAttribute()).setBaseValue(ati.getBaseValue());
         }
+
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
+        updateActiveHand();
         this.ticksSinceLastSwing++;
 
         for (IAttributeInstance attribute : masterMan.getAttributeMap().getAllAttributes()) {
@@ -38,4 +42,8 @@ public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
 
     }
 
+    @Override
+    public ItemStack getHeldItem(EnumHand hand) {
+        return masterMan.getHeldItem(hand);
+    }
 }
