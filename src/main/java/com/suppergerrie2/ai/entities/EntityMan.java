@@ -138,19 +138,23 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (this.isDead) {
             this.resetMining();
             return;
-
         }
 
+
+        //Only evaluate networks on server, the server should decide what to do.
         if (!world.isRemote) {
             OutputNeuron[] networkOutput = organism.evaluate();
 
+            //Forward and strafe will be changed based on the neural networks output
             double forward = 0;
             double strafe = 0;
 
+            //We need to check every output to decide what to do.
             for (OutputNeuron output : networkOutput) {
+                //Check the type of the output and do something based on that output's value
                 switch (output.getType()) {
                     case "JumpOutput":
-                        if (output.getValue() > 0.5) {
+                        if (output.value > 0.5) {
                             this.jumpHelper.setJumping();
                         }
                         break;
@@ -158,13 +162,13 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                         int recipeID = ((CraftOutputNeuron) output).recipeID;
                         break;
                     case "TurnPitchOutput":
-                        if (output.getValue() > 0.5 || output.getValue() < 0.5) {
+                        if (output.value > 0.5 || output.getValue() < 0.5) {
                             //TODO: This doesn't work
                             this.setRotation(this.rotationYaw, (float) (this.rotationPitch + output.getValue()));
                         }
                         break;
                     case "TurnYawOutput":
-                        if (output.getValue() > 0.5 || output.getValue() < 0.5) {
+                        if (output.value > 0.5 || output.getValue() < 0.5) {
                             this.setRotation((float) (this.rotationYaw + output.getValue()), this.rotationPitch);
                         }
                         break;
@@ -185,36 +189,48 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 }
             }
 
+            //Set the strafing and forward values with a max value of 1 and a min value of -1. This way the bot can decide how fast to run without teleporting through walls
             this.moveStrafing = (float) MathHelper.clamp(strafe, -1, 1);
             this.moveForward = (float) MathHelper.clamp(forward, -1, 1);
 
+            //We use the rightclickdelay so the bot cant right click every tick.
             if (rightClickDelay > 0) rightClickDelay--;
 
+            //Make sure that if the bot chooses to hold a different slot it updates its hand
             this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedItemIndex));
 
+            //Make sure the fakeplayer is up to date with the positions
             fakePlayer.setPositionAndRotation(posX, posY, posZ, rotationYaw, rotationPitch);
             fakePlayer.onUpdate();
 
+            //Check what the bot can see in front of him
             RayTraceResult result = this.rayTraceBlockEntity(0, 0);
 
             if (leftClicking) {
                 leftClick(result);
             } else {
+
+                //Needed to know so they pause between attacking mobs
                 lastTickLeftClicked = false;
+
+                //If lastMinePos isn't set at a negative y we just mined a block and need to reset it
                 if (this.lastMinePos.getY() > 0) {
                     resetMining();
                 }
             }
 
+            //When they want to right click and the delay is 0 right click
             if (rightClicking && rightClickDelay == 0) {
                 rightClick(result);
-            } else if (this.isHandActive() || fakePlayer.isHandActive()) {
+            } else if (this.isHandActive() || fakePlayer.isHandActive()) { //If the fakeplayer or the bot is using an item reset it
                 stopActiveHand();
                 fakePlayer.stopActiveHand();
             }
 
+            //Get all of the items in a range 1 block around it.
             List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
 
+            //And try to pickup every item in range
             for (EntityItem item : items) {
                 pickup(item);
             }
@@ -223,9 +239,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     //Adds swinging animation - By Mechanist
     private void updateAction() {
-//        super.updateEntityActionState();
         this.updateArmSwingProgress();
-//        this.rotationYawHead = this.rotationYaw;
     }
 
 

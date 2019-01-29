@@ -33,6 +33,7 @@ public class FakePlayer extends net.minecraftforge.common.util.FakePlayer {
         updateActiveHand();
         this.ticksSinceLastSwing++;
 
+        //TODO: Find a better way than doing this
         for (IAttributeInstance attribute : masterMan.getAttributeMap().getAllAttributes()) {
             this.getAttributeMap().getAttributeInstance(attribute.getAttribute()).removeAllModifiers();
             for (AttributeModifier modifier : attribute.getModifiers()) {
