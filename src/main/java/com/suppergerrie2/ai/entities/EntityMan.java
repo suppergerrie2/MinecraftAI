@@ -186,6 +186,14 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                             forward = -1 * output.value;
                         }
                         break;
+                    case "LeftClickOutput":
+                        leftClicking = output.value > 0.5;
+                        break;
+                    case "RightClickOutput":
+                        rightClicking = output.value > 0.5;
+                        break;
+                    default:
+                        System.out.println("Unknown output type " + output.getType());
                 }
             }
 
