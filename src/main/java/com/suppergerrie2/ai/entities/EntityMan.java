@@ -196,7 +196,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             fakePlayer.onUpdate();
 
             RayTraceResult result = this.rayTraceBlockEntity(0, 0);
-            this.rayTraceBlockEntity((float) Math.toRadians(90), 0);
 
             if (leftClicking) {
                 leftClick(result);
