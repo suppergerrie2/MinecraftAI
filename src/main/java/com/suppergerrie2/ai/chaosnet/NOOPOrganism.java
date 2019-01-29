@@ -58,7 +58,7 @@ public class NOOPOrganism extends SupperCraftOrganism {
     }
 
     @Override
-    public Object getScore() {
+    public double getScore() {
         return super.getScore();
     }
 
