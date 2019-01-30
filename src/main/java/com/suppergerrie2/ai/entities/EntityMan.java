@@ -198,6 +198,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 }
             }
 
+            //Calculate the block it wants to look at TODO: I think this is incorrect
             double yOffset = Math.sin(Math.toRadians(desiredPitch));
             double zOffset = Math.cos(Math.toRadians(desiredYaw));
             double xOffset = Math.sin(Math.toRadians(desiredYaw));
