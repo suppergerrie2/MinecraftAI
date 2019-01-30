@@ -1,10 +1,15 @@
 package com.suppergerrie2.ai;
 
 import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
+import com.suppergerrie2.ChaosNetClient.components.Session;
+import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
+import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
+import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
+import com.suppergerrie2.ai.chaosnet.neurons.EyeNeuron;
 import com.suppergerrie2.ai.commands.CommandCreateRoom;
-import com.suppergerrie2.ai.commands.CommandDumpRegistry;
 import com.suppergerrie2.ai.commands.CommandGetRooms;
 import com.suppergerrie2.ai.commands.CommandLogin;
+import com.suppergerrie2.ai.commands.CommandStartSession;
 import com.suppergerrie2.ai.init.ModBlocks;
 import com.suppergerrie2.ai.networking.PacketHandler;
 import com.suppergerrie2.ai.proxies.IProxy;
@@ -29,8 +34,9 @@ public class MinecraftAI {
     public static IProxy proxy;
 
     public static Logger logger;
-    public static ChaosNetClient chaosNetClient = new ChaosNetClient();
-    
+    public ChaosNetClient client = new ChaosNetClient();
+    public Session session = null;
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
@@ -39,6 +45,21 @@ public class MinecraftAI {
         PacketHandler.registerMessages();
         logger.info("preInit");
         ModBlocks.init();
+
+        client.registerCustomOrganismType(new SupperCraftOrganism());
+
+        //Register neuron types:
+        client.registerNeuronType("BlockPositionInput", new EyeNeuron());
+
+        client.registerNeuronType("JumpOutput", new OutputNeuron());
+        client.registerNeuronType("CraftOutput", new CraftOutputNeuron());
+        client.registerNeuronType("TurnYawOutput", new OutputNeuron());
+        client.registerNeuronType("TurnPitchOutput", new OutputNeuron());
+        client.registerNeuronType("LeftClickOutput", new OutputNeuron());
+        client.registerNeuronType("RightClickOutput", new OutputNeuron());
+        client.registerNeuronType("WalkSidewaysOutput", new OutputNeuron());
+        client.registerNeuronType("WalkForwardOutput", new OutputNeuron());
+
     }
 
     @EventHandler
@@ -60,7 +81,7 @@ public class MinecraftAI {
         event.registerServerCommand(new CommandLogin());
         event.registerServerCommand(new CommandGetRooms());
         event.registerServerCommand(new CommandCreateRoom());
-        event.registerServerCommand(new CommandDumpRegistry());
+        event.registerServerCommand(new CommandStartSession());
     }
 
 }
