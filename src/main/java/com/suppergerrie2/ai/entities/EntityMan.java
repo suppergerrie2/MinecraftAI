@@ -21,6 +21,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -41,6 +42,7 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import org.lwjgl.Sys;
+import scala.collection.parallel.ParIterableLike;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -72,6 +74,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     private int selectedItemIndex = 0;
     private SupperCraftOrganism organism;
+
+    double desiredPitch;
+    double desiredYaw;
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
@@ -140,7 +145,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             return;
         }
 
-
         //Only evaluate networks on server, the server should decide what to do.
         if (!world.isRemote) {
             OutputNeuron[] networkOutput = organism.evaluate();
@@ -162,15 +166,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                         int recipeID = ((CraftOutputNeuron) output).recipeID;
                         break;
                     case "TurnPitchOutput":
-                        if (output.value > 0.5 || output.getValue() < 0.5) {
-                            //TODO: This doesn't work
-                            this.setRotation(this.rotationYaw, (float) (this.rotationPitch + output.getValue()));
-                        }
+                        desiredPitch = MathHelper.clamp(output.value, -1 ,1) * 180;
+
                         break;
                     case "TurnYawOutput":
-                        if (output.value > 0.5 || output.getValue() < 0.5) {
-                            this.setRotation((float) (this.rotationYaw + output.getValue()), this.rotationPitch);
-                        }
+                        desiredYaw = MathHelper.clamp(output.value, -1 ,1) * 180;
+
                         break;
                     case "WalkSidewaysOutput":
                         if (output.value > 0.5) {
@@ -196,6 +197,14 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                         System.out.println("Unknown output type " + output.getType());
                 }
             }
+
+            double yOffset = Math.sin(Math.toRadians(desiredPitch));
+            double zOffset = Math.cos(Math.toRadians(desiredYaw));
+            double xOffset = Math.sin(Math.toRadians(desiredYaw));
+
+            this.getLookHelper().setLookPosition(posX + xOffset, posY + this.getEyeHeight()+ yOffset, posZ + zOffset, 10, 10);
+            this.renderYawOffset = 0;
+            this.setRotation(this.rotationYawHead, this.rotationPitch);
 
             //Set the strafing and forward values with a max value of 1 and a min value of -1. This way the bot can decide how fast to run without teleporting through walls
             this.moveStrafing = (float) MathHelper.clamp(strafe, -1, 1);
@@ -243,6 +252,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 pickup(item);
             }
         }
+
     }
 
     //Adds swinging animation - By Mechanist
