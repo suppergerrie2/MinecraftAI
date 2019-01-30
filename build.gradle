@@ -42,7 +42,7 @@ minecraft {
 }
 
 dependencies {
-    compile('com.github.suppergerrie2:JavaChaosNetClient:-SNAPSHOT') {changing = true}
+    compile('com.github.suppergerrie2:JavaChaosNetClient:1530fec833') {changing = true}
 }
 
 processResources {
