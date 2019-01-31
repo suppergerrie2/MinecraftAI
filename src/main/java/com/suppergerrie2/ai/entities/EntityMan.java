@@ -133,6 +133,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public void onUpdate() {
         super.onUpdate();
 
+        MinecraftAI.man = this;
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
             for (int i = 0; i < itemHandler.getSlots(); i++) {

@@ -38,7 +38,6 @@ public class BotHubBlock extends Block {
 
 	            EntityMan man = new EntityMan(worldIn, name);
 	            man.setPosition(pos.getX(), pos.getY(), pos.getZ());
-	            MinecraftAI.man = man;
 	            worldIn.spawnEntity(man);
 	            currentBots++;
 	            
