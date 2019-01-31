@@ -10,9 +10,15 @@ import com.suppergerrie2.ai.commands.CommandCreateRoom;
 import com.suppergerrie2.ai.commands.CommandGetRooms;
 import com.suppergerrie2.ai.commands.CommandLogin;
 import com.suppergerrie2.ai.commands.CommandStartSession;
+import com.suppergerrie2.ai.entities.EntityMan;
+import com.suppergerrie2.ai.entities.FakePlayer;
 import com.suppergerrie2.ai.init.ModBlocks;
 import com.suppergerrie2.ai.networking.PacketHandler;
 import com.suppergerrie2.ai.proxies.IProxy;
+
+import net.minecraft.server.management.PlayerList;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -36,6 +42,7 @@ public class MinecraftAI {
     public static Logger logger;
     public ChaosNetClient client = new ChaosNetClient();
     public Session session = null;
+    public static FakePlayer man;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -82,6 +89,14 @@ public class MinecraftAI {
         event.registerServerCommand(new CommandGetRooms());
         event.registerServerCommand(new CommandCreateRoom());
         event.registerServerCommand(new CommandStartSession());
+    }
+    
+    public static void chat(String message){
+    	World world = man.getEntityWorld();
+        PlayerList players =  world.getMinecraftServer().getPlayerList();
+        players.sendMessage(
+                new TextComponentString(message)
+        );
     }
 
 }

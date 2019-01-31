@@ -4,6 +4,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 import com.suppergerrie2.ai.EventHandler;
@@ -77,6 +78,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     double desiredPitch;
     double desiredYaw;
+    
+    ChaosNetClient client = new ChaosNetClient();
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
@@ -475,6 +478,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         //Check if block has been broken
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
             //Broken
+        	MinecraftAI.chat(this.getCustomNameTag() + " mined a block");
             miningTicks = 0;
             this.blockSoundTimer = 0;
             world.playEvent(2001, pos, Block.getStateId(state));
@@ -486,7 +490,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 
             boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
-
+            addScore(state.getBlock());
+            
             itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
 
             state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
@@ -660,5 +665,10 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public void readSpawnData(ByteBuf additionalData) {
         itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
         itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
+    }
+    
+    //TODO
+    private void addScore(Block block) {
+    	
     }
 }
