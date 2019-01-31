@@ -42,7 +42,7 @@ public class MinecraftAI {
     public static Logger logger;
     public ChaosNetClient client = new ChaosNetClient();
     public Session session = null;
-    public static FakePlayer man;
+    public static EntityMan man;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -92,11 +92,19 @@ public class MinecraftAI {
     }
     
     public static void chat(String message){
-    	World world = man.getEntityWorld();
-        PlayerList players =  world.getMinecraftServer().getPlayerList();
-        players.sendMessage(
-                new TextComponentString(message)
-        );
-    }
+
+        if(man == null){
+            logger.info("Man is null");
+            return;
+        }
+
+
+
+           World world = man.getEntityWorld();
+            PlayerList players =  world.getMinecraftServer().getPlayerList();
+            players.sendMessage(
+                    new TextComponentString(message)
+            );
+        }
 
 }

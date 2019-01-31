@@ -1,5 +1,6 @@
 package com.suppergerrie2.ai.block;
 
+import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.tileentity.TileEntityBotHub;
 
@@ -37,7 +38,7 @@ public class BotHubBlock extends Block {
 
 	            EntityMan man = new EntityMan(worldIn, name);
 	            man.setPosition(pos.getX(), pos.getY(), pos.getZ());
-
+	            MinecraftAI.man = man;
 	            worldIn.spawnEntity(man);
 	            currentBots++;
 	            
