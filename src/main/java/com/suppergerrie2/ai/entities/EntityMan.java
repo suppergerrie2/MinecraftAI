@@ -4,6 +4,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 import com.suppergerrie2.ai.EventHandler;
@@ -77,6 +78,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     double desiredPitch;
     double desiredYaw;
+    
+    ChaosNetClient client = new ChaosNetClient();
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
@@ -130,6 +133,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public void onUpdate() {
         super.onUpdate();
 
+        MinecraftAI.man = this;
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
             for (int i = 0; i < itemHandler.getSlots(); i++) {
@@ -356,10 +360,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
 
                         EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
+                        
+                        
 
                         if (enumactionresult == EnumActionResult.SUCCESS) {
                             this.swingArm(hand);
-
+                            	
                             return;
                         }
                     }
@@ -386,6 +392,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
             return EnumActionResult.PASS;
+            
+            
         } else {
             int i = itemstack.getCount();
             ActionResult<ItemStack> actionresult = itemstack.useItemRightClick(world, fakePlayer, hand);
@@ -393,6 +401,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (itemstack1 != itemstack || itemstack1.getCount() != i) {
                 this.setHeldItem(hand, itemstack1);
+                
+
+            	
                 if (itemstack1.isEmpty()) {
                     net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(fakePlayer, itemstack, hand);
                 }
@@ -427,6 +438,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (!flag && itemstack.getItem() instanceof ItemBlock) {
                 ItemBlock itemblock = (ItemBlock) itemstack.getItem();
+                
+                String oldStr = this.getCustomNameTag() + " placed " + itemblock.getRegistryName();
+            	String delStr = "minecraft:";
+            	String newStr;
+            	newStr = oldStr.replace(delStr, "");
+            	MinecraftAI.chat(newStr);
 
                 if (!itemblock.canPlaceBlockOnSide(world, pos, direction, fakePlayer, itemstack)) {
                     return EnumActionResult.FAIL;
@@ -475,6 +492,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         //Check if block has been broken
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
             //Broken
+        	
+        	String oldStr = this.getCustomNameTag() + " mined " + state.getBlock();
+        	String delStr = "Block{minecraft:";
+        	String delStr1 = "}";
+        	String newStr;
+        	newStr = oldStr.replace(delStr, "");
+        	newStr = newStr.replace(delStr1, "");
+        	MinecraftAI.chat(newStr);
+        	
             miningTicks = 0;
             this.blockSoundTimer = 0;
             world.playEvent(2001, pos, Block.getStateId(state));
@@ -486,7 +512,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 
             boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
-
+            addScore(state.getBlock());
+            
             itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
 
             state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
@@ -538,7 +565,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
     }
 
-    private RayTraceResult rayTraceBlockEntity(float rotatePitch, float rotateYaw) {
+    public RayTraceResult rayTraceBlockEntity(float rotatePitch, float rotateYaw) {
         Entity pointedEntity = null;
 
         double reachDistance = (double) this.getBlockReachDistance();
@@ -660,5 +687,10 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public void readSpawnData(ByteBuf additionalData) {
         itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
         itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
+    }
+    
+    //TODO
+    private void addScore(Block block) {
+    	
     }
 }

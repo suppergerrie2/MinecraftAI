@@ -24,7 +24,7 @@ public class EyeNeuron extends InputNeuron {
 
         SupperCraftOrganism organism = (SupperCraftOrganism) getOwner();
 
-        return organism.eyes[eyeIndex].getValue(getOwner());
+        return organism.eyes[eyeIndex].getValue(getOwner(), attributeValue);
     }
 
     @Override
