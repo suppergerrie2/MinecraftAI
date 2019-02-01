@@ -360,10 +360,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
 
                         EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
+                        
+                        
 
                         if (enumactionresult == EnumActionResult.SUCCESS) {
                             this.swingArm(hand);
-
+                            	
                             return;
                         }
                     }
@@ -390,6 +392,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
             return EnumActionResult.PASS;
+            
+            
         } else {
             int i = itemstack.getCount();
             ActionResult<ItemStack> actionresult = itemstack.useItemRightClick(world, fakePlayer, hand);
@@ -397,6 +401,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (itemstack1 != itemstack || itemstack1.getCount() != i) {
                 this.setHeldItem(hand, itemstack1);
+                
+
+            	
                 if (itemstack1.isEmpty()) {
                     net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(fakePlayer, itemstack, hand);
                 }
@@ -431,6 +438,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (!flag && itemstack.getItem() instanceof ItemBlock) {
                 ItemBlock itemblock = (ItemBlock) itemstack.getItem();
+                
+                String oldStr = this.getCustomNameTag() + " placed " + itemblock.getRegistryName();
+            	String delStr = "minecraft:";
+            	String newStr;
+            	newStr = oldStr.replace(delStr, "");
+            	MinecraftAI.chat(newStr);
 
                 if (!itemblock.canPlaceBlockOnSide(world, pos, direction, fakePlayer, itemstack)) {
                     return EnumActionResult.FAIL;
@@ -479,7 +492,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         //Check if block has been broken
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
             //Broken
-        	MinecraftAI.chat(this.getCustomNameTag() + " mined a block");
+        	
+        	String oldStr = this.getCustomNameTag() + " mined " + state.getBlock();
+        	String delStr = "Block{minecraft:";
+        	String delStr1 = "}";
+        	String newStr;
+        	newStr = oldStr.replace(delStr, "");
+        	newStr = newStr.replace(delStr1, "");
+        	MinecraftAI.chat(newStr);
+        	
             miningTicks = 0;
             this.blockSoundTimer = 0;
             world.playEvent(2001, pos, Block.getStateId(state));
