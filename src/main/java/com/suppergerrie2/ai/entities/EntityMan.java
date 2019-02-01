@@ -22,7 +22,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -42,8 +41,6 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import org.lwjgl.Sys;
-import scala.collection.parallel.ParIterableLike;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -133,7 +130,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public void onUpdate() {
         super.onUpdate();
 
-        MinecraftAI.man = this;
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
             for (int i = 0; i < itemHandler.getSlots(); i++) {
@@ -443,7 +439,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             	String delStr = "minecraft:";
             	String newStr;
             	newStr = oldStr.replace(delStr, "");
-            	MinecraftAI.chat(newStr);
+            	MinecraftAI.chat(world, newStr);
 
                 if (!itemblock.canPlaceBlockOnSide(world, pos, direction, fakePlayer, itemstack)) {
                     return EnumActionResult.FAIL;
@@ -499,7 +495,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         	String newStr;
         	newStr = oldStr.replace(delStr, "");
         	newStr = newStr.replace(delStr1, "");
-        	MinecraftAI.chat(newStr);
+        	MinecraftAI.chat(world, newStr);
         	
             miningTicks = 0;
             this.blockSoundTimer = 0;
