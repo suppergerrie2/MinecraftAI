@@ -6,13 +6,13 @@ import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 
 public class CraftOutputNeuron extends OutputNeuron {
 
-    public int recipeID;
+    public String recipeID;
 
     @Override
     public AbstractNeuron parseFromJson(JsonObject object) {
         CraftOutputNeuron neuron = (CraftOutputNeuron)super.parseFromJson(object);
 
-        neuron.recipeID = object.get("recipeId").getAsInt();
+        neuron.recipeID = object.get("recipeId").getAsString();
 
         return neuron;
     }

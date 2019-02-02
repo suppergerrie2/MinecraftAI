@@ -163,7 +163,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                         }
                         break;
                     case "CraftOutput":
-                        int recipeID = ((CraftOutputNeuron) output).recipeID;
+                        String recipeID = ((CraftOutputNeuron) output).recipeID;
                         break;
                     case "TurnPitchOutput":
                         desiredPitch = MathHelper.clamp(output.value, -1 ,1) * 180;

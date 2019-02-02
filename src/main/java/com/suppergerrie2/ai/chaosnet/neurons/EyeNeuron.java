@@ -12,7 +12,7 @@ public class EyeNeuron extends InputNeuron {
     String attributeID;
 
     @SerializedName("attributeValue")
-    int attributeValue;
+    String attributeValue;
 
     int eyeIndex;
 
@@ -24,7 +24,7 @@ public class EyeNeuron extends InputNeuron {
 
         SupperCraftOrganism organism = (SupperCraftOrganism) getOwner();
 
-        return organism.eyes[eyeIndex].getValue(getOwner(), attributeValue);
+        return organism.eyes[eyeIndex].getValue(getOwner(), 0);
     }
 
     @Override
