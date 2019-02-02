@@ -32,13 +32,13 @@ public class CommandLogin extends CommandBase {
             return;
         }
 
-        boolean saveCode = false;
+        boolean saveCode = true;
         if (args.length == 3) {
             saveCode = Boolean.parseBoolean(args[2]);
         }
 
         try {
-            MinecraftAI.chaosNetClient.authenticate(args[0], args[1], saveCode);
+            MinecraftAI.instance.client.authenticate(args[0], args[1], saveCode);
             sender.sendMessage(new TextComponentString("Login succeeded!!"));
         } catch (IOException e) {
             e.printStackTrace();

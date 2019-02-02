@@ -4,8 +4,15 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
+import com.suppergerrie2.ChaosNetClient.components.Organism;
+import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
+import com.suppergerrie2.ai.EventHandler;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
+import com.suppergerrie2.ai.chaosnet.ChaosNetManager;
+import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
+import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
 import com.suppergerrie2.ai.inventory.ItemHandlerMan;
 import com.suppergerrie2.ai.items.DebugItem;
 import com.suppergerrie2.ai.networking.PacketHandler;
@@ -18,6 +25,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -25,10 +33,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.capabilities.Capability;
@@ -66,14 +71,24 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     int rightClickDelay = 0;
 
     private int selectedItemIndex = 0;
+    private SupperCraftOrganism organism;
+
+    double desiredPitch;
+    double desiredYaw;
+    
+    ChaosNetClient client = new ChaosNetClient();
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
     public EntityMan(World worldIn) {
         this(worldIn, "BOT");
     }
 
+    @Deprecated
     public EntityMan(World worldIn, String name) {
         super(worldIn);
+        this.enablePersistence();
+
+        if (name.length() == 0) name = "BOT";
 
         this.setCustomNameTag(name);
         setAlwaysRenderNameTag(true);
@@ -83,7 +98,22 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         this.setAIMoveSpeed(0.3f);
 
         itemHandler = new ItemHandlerMan(this);
+        this.organism = null;
 
+        this.moveHelper = new EntityMoveHelper(this) {
+            @Override
+            public void onUpdateMoveHelper() {
+                //NO-OP this so it doesnt reset move forward
+            }
+        };
+
+    }
+
+    public EntityMan(World world, Organism organism) {
+        this(world, organism.getName());
+
+        this.organism = (SupperCraftOrganism) organism;
+        this.organism.setOwner(this);
     }
 
     @Override
@@ -98,6 +128,23 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
+    	 int time = this.ticksExisted/20;
+
+     	if(time >= 10 && !world.isRemote) {
+     		this.setDead();
+
+     		if(!this.isDead) {
+                ChaosNetManager.reportOrganism(organism);
+            }
+     		return;
+     	}
+     	
+        if(!this.world.isRemote && this.organism == null) {
+            this.setDead();
+            return;
+        }
+        
+
         super.onUpdate();
 
 
@@ -114,51 +161,124 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (this.isDead) {
             this.resetMining();
             return;
-
         }
 
+        //Only evaluate networks on server, the server should decide what to do.
         if (!world.isRemote) {
+            OutputNeuron[] networkOutput = organism.evaluate();
+
+            //Forward and strafe will be changed based on the neural networks output
+            double forward = 0;
+            double strafe = 0;
+
+            //We need to check every output to decide what to do.
+            for (OutputNeuron output : networkOutput) {
+                //Check the type of the output and do something based on that output's value
+                switch (output.getType()) {
+                    case "JumpOutput":
+                        if (output.value > 0.5) {
+                            this.jumpHelper.setJumping();
+                        }
+                        break;
+                    case "CraftOutput":
+                        String recipeID = ((CraftOutputNeuron) output).recipeID;
+                        break;
+                    case "TurnPitchOutput":
+                        desiredPitch = MathHelper.clamp(output.value, -1 ,1) * 180;
+
+                        break;
+                    case "TurnYawOutput":
+                        desiredYaw = MathHelper.clamp(output.value, -1 ,1) * 180;
+
+                        break;
+                    case "WalkSidewaysOutput":
+                        if (output.value > 0.5) {
+                            strafe = 1 * output.value;
+                        } else if (output.value < 0.5) {
+                            strafe = -1 * output.value;
+                        }
+                        break;
+                    case "WalkForwardOutput":
+                        if (output.value > 0.5) {
+                            forward = 1 * output.value;
+                        } else if (output.value < 0.5) {
+                            forward = -1 * output.value;
+                        }
+                        break;
+                    case "LeftClickOutput":
+                        leftClicking = output.value > 0.5;
+                        break;
+                    case "RightClickOutput":
+                        rightClicking = output.value > 0.5;
+                        break;
+                    default:
+                        System.out.println("Unknown output type " + output.getType());
+                }
+            }
+
+            //Calculate the block it wants to look at TODO: I think this is incorrect
+            double yOffset = Math.sin(Math.toRadians(desiredPitch));
+            double zOffset = Math.cos(Math.toRadians(desiredYaw));
+            double xOffset = Math.sin(Math.toRadians(desiredYaw));
+
+            this.getLookHelper().setLookPosition(posX + xOffset, posY + this.getEyeHeight()+ yOffset, posZ + zOffset, 10, 10);
+            this.renderYawOffset = 0;
+            this.setRotation(this.rotationYawHead, this.rotationPitch);
+
+            //Set the strafing and forward values with a max value of 1 and a min value of -1. This way the bot can decide how fast to run without teleporting through walls
+            this.moveStrafing = (float) MathHelper.clamp(strafe, -1, 1);
+            this.moveForward = (float) MathHelper.clamp(forward, -1, 1);
+
+            //We use the rightclickdelay so the bot cant right click every tick.
             if (rightClickDelay > 0) rightClickDelay--;
 
+            //Make sure that if the bot chooses to hold a different slot it updates its hand
             this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedItemIndex));
 
-//            fakePlayer.setPosition(posX, posY, posZ);
+            //Make sure the fakeplayer is up to date with the positions
             fakePlayer.setPositionAndRotation(posX, posY, posZ, rotationYaw, rotationPitch);
             fakePlayer.onUpdate();
 
-            RayTraceResult result = this.rayTraceBlockEntity();
+            //Check what the bot can see in front of him
+            RayTraceResult result = this.rayTraceBlockEntity(0, 0);
 
             if (leftClicking) {
-
                 leftClick(result);
             } else {
+
+                //Needed to know so they pause between attacking mobs
                 lastTickLeftClicked = false;
+
+                //If lastMinePos isn't set at a negative y we just mined a block and need to reset it
                 if (this.lastMinePos.getY() > 0) {
                     resetMining();
                 }
             }
 
+            //When they want to right click and the delay is 0 right click
             if (rightClicking && rightClickDelay == 0) {
                 rightClick(result);
-            } else if (this.isHandActive() || fakePlayer.isHandActive()) {
+            } else if (this.isHandActive() || fakePlayer.isHandActive()) { //If the fakeplayer or the bot is using an item reset it
                 stopActiveHand();
                 fakePlayer.stopActiveHand();
             }
 
+            //Get all of the items in a range 1 block around it.
             List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, this.getEntityBoundingBox().grow(1.0D, 0.0D, 1.0D));
 
+            //And try to pickup every item in range
             for (EntityItem item : items) {
                 pickup(item);
             }
         }
+
     }
 
     //Adds swinging animation - By Mechanist
     private void updateAction() {
-        super.updateEntityActionState();
         this.updateArmSwingProgress();
-        this.rotationYawHead = this.rotationYaw;
     }
+
 
     private void pickup(EntityItem item) {
         if (item.cannotPickup()) return;
@@ -254,10 +374,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
 
                         EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
+                        
+                        
 
                         if (enumactionresult == EnumActionResult.SUCCESS) {
                             this.swingArm(hand);
-
+                            	
                             return;
                         }
                     }
@@ -284,6 +406,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
             return EnumActionResult.PASS;
+            
+            
         } else {
             int i = itemstack.getCount();
             ActionResult<ItemStack> actionresult = itemstack.useItemRightClick(world, fakePlayer, hand);
@@ -291,6 +415,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (itemstack1 != itemstack || itemstack1.getCount() != i) {
                 this.setHeldItem(hand, itemstack1);
+                
+
+            	
                 if (itemstack1.isEmpty()) {
                     net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(fakePlayer, itemstack, hand);
                 }
@@ -302,6 +429,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     private EnumActionResult rightClickBlock(BlockPos pos, EnumFacing direction, Vec3d vec, EnumHand hand) {
         ItemStack itemstack = getHeldItem(hand);
+
+        if(itemstack.isEmpty()) return EnumActionResult.PASS;
+
         float f = (float) (vec.x - (double) pos.getX());
         float f1 = (float) (vec.y - (double) pos.getY());
         float f2 = (float) (vec.z - (double) pos.getZ());
@@ -330,6 +460,10 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     return EnumActionResult.FAIL;
                 }
             }
+
+
+            String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
+            MinecraftAI.chat(world, debugMessage);
 
             if (!flag) {
                 if (itemstack.isEmpty()) {
@@ -373,6 +507,10 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         //Check if block has been broken
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
             //Broken
+        	
+        	String debugMessage = this.getCustomNameTag() + " mined " + state.getBlock().getLocalizedName();
+        	MinecraftAI.chat(world, debugMessage);
+        	
             miningTicks = 0;
             this.blockSoundTimer = 0;
             world.playEvent(2001, pos, Block.getStateId(state));
@@ -384,7 +522,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 
             boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
-
+            
             itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
 
             state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
@@ -416,7 +554,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             if (world.getMinecraftServer() != null) {
                 world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
             }
+
+            ChaosNetManager.reportOrganism(this.organism);
         }
+
+
         this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
     }
 
@@ -436,11 +578,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         }
     }
 
-    private RayTraceResult rayTraceBlockEntity() {
+    public RayTraceResult rayTraceBlockEntity(float rotatePitch, float rotateYaw) {
         Entity pointedEntity = null;
 
         double reachDistance = (double) this.getBlockReachDistance();
-        RayTraceResult raytrace = this.rayTrace(reachDistance);
+        RayTraceResult raytrace = this.rayTrace(reachDistance, rotatePitch, rotateYaw);
         Vec3d eyePosition = this.getPositionEyes(1);
 
         boolean flag = false;
@@ -456,7 +598,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             distanceFromHit = raytrace.hitVec.distanceTo(eyePosition);
         }
 
-        Vec3d lookVector = this.getLook(1.0F);
+        Vec3d lookVector = this.getLook(1.0F).rotatePitch(rotatePitch).rotateYaw(rotateYaw);
         Vec3d scaledLookVector = eyePosition.add(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
 
         Vec3d entityPos = null;
@@ -500,14 +642,20 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (pointedEntity != null && (minEntityDist < distanceFromHit || raytrace == null)) {
             raytrace = new RayTraceResult(pointedEntity, entityPos);
         }
+
+        if (raytrace != null && raytrace.typeOfHit != null) {
+            EventHandler.addRayTraceDebug(new EventHandler.RayTraceDebug(raytrace, this.getPositionVector().add(0, this.getEyeHeight(), 0)));
+        }
         return raytrace;
     }
 
-    private RayTraceResult rayTrace(double blockReachDistance) {
+    private RayTraceResult rayTrace(double blockReachDistance, float rotatePitch, float rotateYaw) {
         Vec3d vec3d = this.getPositionEyes(1);
-        Vec3d vec3d1 = this.getLook(1);
+        Vec3d vec3d1 = new Vec3d(0, 0, 1).rotateYaw((float) Math.toRadians(-rotationYawHead + rotateYaw));
         Vec3d vec3d2 = vec3d.add(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
-        return this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
+        RayTraceResult result = this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
+
+        return result;
     }
 
     private float getBlockReachDistance() {
@@ -550,5 +698,18 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     public void readSpawnData(ByteBuf additionalData) {
         itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
         itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
+    }
+
+    @Override
+    public void setDead() {
+
+        this.resetMining();
+
+        super.setDead();
+    }
+
+    //TODO
+    private void addScore() {
+    
     }
 }

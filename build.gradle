@@ -41,8 +41,22 @@ minecraft {
     mappings = "stable_39"
 }
 
+configurations {
+    shade
+    compile.extendsFrom shade
+}
+
 dependencies {
-    compile('com.github.suppergerrie2:JavaChaosNetClient:1530fec833') {changing = true}
+    shade('com.github.suppergerrie2:JavaChaosNetClient:343fe6de88') {changing = true}
+}
+
+jar {
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**'
+            // you may exclude other things here if you want, or maybe copy the META-INF
+        }
+    }
 }
 
 processResources {

@@ -32,7 +32,7 @@ public class CommandCreateRoom extends CommandBase {
         }
 
         TrainingRoom room = new TrainingRoom(args[0], args[1], args[2]);
-        if (MinecraftAI.chaosNetClient.createTrainingRoom(room)) {
+        if (MinecraftAI.instance.client.createTrainingRoom(room)) {
             sender.sendMessage(new TextComponentString("Room created!"));
         } else {
             sender.sendMessage(new TextComponentString("Room failed to create D:"));
