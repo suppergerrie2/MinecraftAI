@@ -10,7 +10,7 @@ import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 import com.suppergerrie2.ai.EventHandler;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
-import com.suppergerrie2.ai.chaosnet.NOOPOrganism;
+import com.suppergerrie2.ai.chaosnet.ChaosNetManager;
 import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
 import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
 import com.suppergerrie2.ai.inventory.ItemHandlerMan;
@@ -98,7 +98,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         this.setAIMoveSpeed(0.3f);
 
         itemHandler = new ItemHandlerMan(this);
-        this.organism = NOOPOrganism.INSTANCE;
+        this.organism = null;
 
         this.moveHelper = new EntityMoveHelper(this) {
             @Override
@@ -128,7 +128,13 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
+        if(!this.world.isRemote && this.organism == null) {
+            this.setDead();
+            return;
+        }
+
         super.onUpdate();
+
 
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
@@ -537,7 +543,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             if (world.getMinecraftServer() != null) {
                 world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
             }
+
+            ChaosNetManager.reportOrganism(this.organism);
         }
+
+
         this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
     }
 
