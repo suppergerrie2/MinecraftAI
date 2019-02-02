@@ -411,6 +411,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     private EnumActionResult rightClickBlock(BlockPos pos, EnumFacing direction, Vec3d vec, EnumHand hand) {
         ItemStack itemstack = getHeldItem(hand);
+
+        if(itemstack.isEmpty()) return EnumActionResult.PASS;
+
         float f = (float) (vec.x - (double) pos.getX());
         float f1 = (float) (vec.y - (double) pos.getY());
         float f2 = (float) (vec.z - (double) pos.getZ());
@@ -434,17 +437,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (!flag && itemstack.getItem() instanceof ItemBlock) {
                 ItemBlock itemblock = (ItemBlock) itemstack.getItem();
-                
-                String oldStr = this.getCustomNameTag() + " placed " + itemblock.getRegistryName();
-            	String delStr = "minecraft:";
-            	String newStr;
-            	newStr = oldStr.replace(delStr, "");
-            	MinecraftAI.chat(world, newStr);
 
                 if (!itemblock.canPlaceBlockOnSide(world, pos, direction, fakePlayer, itemstack)) {
                     return EnumActionResult.FAIL;
                 }
             }
+
+
+            String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
+            MinecraftAI.chat(world, debugMessage);
 
             if (!flag) {
                 if (itemstack.isEmpty()) {
@@ -489,13 +490,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
             //Broken
         	
-        	String oldStr = this.getCustomNameTag() + " mined " + state.getBlock();
-        	String delStr = "Block{minecraft:";
-        	String delStr1 = "}";
-        	String newStr;
-        	newStr = oldStr.replace(delStr, "");
-        	newStr = newStr.replace(delStr1, "");
-        	MinecraftAI.chat(world, newStr);
+        	String debugMessage = this.getCustomNameTag() + " mined " + state.getBlock().getLocalizedName();
+        	MinecraftAI.chat(world, debugMessage);
         	
             miningTicks = 0;
             this.blockSoundTimer = 0;
