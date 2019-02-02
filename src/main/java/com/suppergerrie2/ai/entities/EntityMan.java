@@ -128,10 +128,20 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
+    	 int time = this.ticksExisted/20;
+         System.out.println(time);
+         
+     	if(time >= 10 && !world.isRemote) {
+     		this.setDead();
+     		ChaosNetManager.reportOrganism(organism);
+     		return;
+     	}
+     	
         if(!this.world.isRemote && this.organism == null) {
             this.setDead();
             return;
         }
+        
 
         super.onUpdate();
 
@@ -510,7 +520,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 
             boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
-            addScore(state.getBlock());
             
             itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
 
@@ -690,7 +699,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     }
     
     //TODO
-    private void addScore(Block block) {
-    	
+    private void addScore() {
+    
     }
 }

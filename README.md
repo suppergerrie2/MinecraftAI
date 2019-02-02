@@ -6,6 +6,6 @@ A minecraft mod which uses ChaosNet to evolve bots.
 
 - [x] Mining
 - [x] Attacking
-- [ ] Placing
+- [x] Placing
 - [ ] Brain connected (Waiting for ChaosNet to develop)
-- [ ] TODO list
+- [x] TODO list

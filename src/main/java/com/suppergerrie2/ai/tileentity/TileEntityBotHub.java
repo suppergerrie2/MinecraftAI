@@ -31,7 +31,6 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             man.setPosition((TileEntityBotHub.this.pos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * (double) spawnRange + 0.5D),
                     TileEntityBotHub.this.pos.getY() + 1,
                     TileEntityBotHub.this.pos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * (double) spawnRange + 0.5D);
-
             world.spawnEntity(man);
             a.add(man.getUniqueID());
         }
