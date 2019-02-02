@@ -7,6 +7,7 @@ import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
 import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
 import com.suppergerrie2.ai.chaosnet.neurons.EyeNeuron;
 import com.suppergerrie2.ai.commands.CommandCreateRoom;
+import com.suppergerrie2.ai.commands.CommandDumpRegistry;
 import com.suppergerrie2.ai.commands.CommandGetRooms;
 import com.suppergerrie2.ai.commands.CommandLogin;
 import com.suppergerrie2.ai.commands.CommandStartSession;
@@ -85,6 +86,7 @@ public class MinecraftAI {
         event.registerServerCommand(new CommandGetRooms());
         event.registerServerCommand(new CommandCreateRoom());
         event.registerServerCommand(new CommandStartSession());
+        event.registerServerCommand(new CommandDumpRegistry());
     }
 
     public static void chat(World world, String message) {
