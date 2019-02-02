@@ -1,5 +1,6 @@
 package com.suppergerrie2.ai.chaosnet;
 
+import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ai.MinecraftAI;
 
@@ -11,28 +12,20 @@ public class ChaosNetManager extends Thread {
 
     int organismsRequested = 0;
 
-    public ChaosNetManager() {
+    public ChaosNetManager(int organismsRequested) {
         super("ChaosNetManager");
+        this.organismsRequested = organismsRequested;
     }
 
     @Override
     public void run() {
-        while (true) {
-            if(MinecraftAI.instance.client.isAuthenticated() && MinecraftAI.instance.session!=null) {
+        while (organismsRequested > 0 && MinecraftAI.instance.client.isAuthenticated() && MinecraftAI.instance.session != null) {
 
-                if (organismsRequested > 0) {
-                    System.out.println("Requesting!");
-                    Organism[] organismsReceived = MinecraftAI.instance.client.getOrganisms(MinecraftAI.instance.session);
+            Organism[] organismsReceived = MinecraftAI.instance.client.getOrganisms(MinecraftAI.instance.session);
 
-                    for (Organism organism : organismsReceived) {
-                        organismsRequested--;
-                        organisms.add(organism);
-                    }
-                }
-            }
-
-            if(organismsRequested<0) {
-                organismsRequested = 0;
+            for (Organism organism : organismsReceived) {
+                organismsRequested--;
+                organisms.add(organism);
             }
         }
     }
@@ -47,9 +40,5 @@ public class ChaosNetManager extends Thread {
 
     public boolean isDone() {
         return organismsRequested <= 0 && !hasOrganisms();
-    }
-
-    public void requestOrganisms(int amount) {
-        this.organismsRequested += amount;
     }
 }

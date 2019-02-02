@@ -3,7 +3,6 @@ package com.suppergerrie2.ai;
 import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.Session;
 import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
-import com.suppergerrie2.ai.chaosnet.ChaosNetManager;
 import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
 import com.suppergerrie2.ai.chaosnet.neurons.CraftOutputNeuron;
 import com.suppergerrie2.ai.chaosnet.neurons.EyeNeuron;
@@ -41,8 +40,6 @@ public class MinecraftAI {
     public ChaosNetClient client = new ChaosNetClient();
     public Session session = null;
 
-    public ChaosNetManager manager;
-
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
@@ -66,8 +63,6 @@ public class MinecraftAI {
         client.registerNeuronType("WalkSidewaysOutput", new OutputNeuron());
         client.registerNeuronType("WalkForwardOutput", new OutputNeuron());
 
-        manager = new ChaosNetManager();
-        manager.start();
     }
 
     @EventHandler
