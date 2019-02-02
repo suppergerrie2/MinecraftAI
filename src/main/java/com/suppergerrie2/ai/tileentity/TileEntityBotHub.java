@@ -28,11 +28,16 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             Organism organism = manager.getOrganism();
 
             EntityMan man = new EntityMan(world, organism);
-            man.setPosition((TileEntityBotHub.this.pos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * (double) spawnRange + 0.5D),
-                    TileEntityBotHub.this.pos.getY() + 1,
-                    TileEntityBotHub.this.pos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * (double) spawnRange + 0.5D);
-            world.spawnEntity(man);
-            a.add(man.getUniqueID());
+            man.setPosition((this.pos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * (double) spawnRange + 0.5D),
+                    this.pos.getY() + 1,
+                    this.pos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * (double) spawnRange + 0.5D);
+
+            if (man.getCanSpawnHere() && man.isNotColliding()) {
+                world.spawnEntity(man);
+                a.add(man.getUniqueID());
+            } else {
+                manager.addFailedSpawn(organism);
+            }
         }
 
         if (!world.isRemote && a.size() < 10 && (manager == null || manager.isDone())) {

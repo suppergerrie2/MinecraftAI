@@ -50,4 +50,8 @@ public class ChaosNetManager extends Thread {
     public static void reportOrganism(Organism o) {
         organismsToReport.add(o);
     }
+
+    public void addFailedSpawn(Organism organism) {
+        this.organisms.add(organism);
+    }
 }
