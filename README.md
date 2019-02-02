@@ -7,5 +7,7 @@ A minecraft mod which uses ChaosNet to evolve bots.
 - [x] Mining
 - [x] Attacking
 - [x] Placing
-- [ ] Brain connected (Waiting for ChaosNet to develop)
+- [x] Brain connected
 - [x] TODO list
+- [ ] Scores submitted
+- [ ] Fitness rules
