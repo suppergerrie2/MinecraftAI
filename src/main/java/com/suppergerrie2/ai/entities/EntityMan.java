@@ -129,11 +129,13 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     @Override
     public void onUpdate() {
     	 int time = this.ticksExisted/20;
-         System.out.println(time);
-         
+
      	if(time >= 10 && !world.isRemote) {
      		this.setDead();
-     		ChaosNetManager.reportOrganism(organism);
+
+     		if(!this.isDead) {
+                ChaosNetManager.reportOrganism(organism);
+            }
      		return;
      	}
      	
@@ -697,7 +699,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
         itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
     }
-    
+
+    @Override
+    public void setDead() {
+
+        this.resetMining();
+
+        super.setDead();
+    }
+
     //TODO
     private void addScore() {
     
