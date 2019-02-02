@@ -630,8 +630,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     private RayTraceResult rayTrace(double blockReachDistance, float rotatePitch, float rotateYaw) {
         Vec3d vec3d = this.getPositionEyes(1);
-//        Vec3d vec3d1 = this.getLook(1).rotateYaw(rotateYaw).rotatePitch(rotatePitch);
-//        System.out.println(rotationYawHead);
         Vec3d vec3d1 = new Vec3d(0, 0, 1).rotateYaw((float) Math.toRadians(-rotationYawHead + rotateYaw));
         Vec3d vec3d2 = vec3d.add(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
         RayTraceResult result = this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
