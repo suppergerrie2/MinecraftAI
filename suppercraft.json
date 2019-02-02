@@ -56,7 +56,6 @@
   ],
   "enum":{
     "BLOCK_IDS": [
-      "minecraft:air",
       "minecraft:stone",
       "minecraft:grass",
       "minecraft:dirt",
