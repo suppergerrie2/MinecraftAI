@@ -22,15 +22,17 @@ public class ChaosNetManager extends Thread {
     public void run() {
         while (organismsRequested > 0 && MinecraftAI.instance.client.isAuthenticated() && MinecraftAI.instance.session != null) {
 
+            Organism[] organismsToReportArray;
             synchronized (organismsToReport) {
-                Organism[] organismsReceived = MinecraftAI.instance.client.getOrganisms(MinecraftAI.instance.session, organismsToReport.toArray(new Organism[0]));
+                organismsToReportArray = organismsToReport.toArray(new Organism[0]);
+            }
 
-                organismsToReport.clear();
+            Organism[] organismsReceived = MinecraftAI.instance.client.getOrganisms(MinecraftAI.instance.session, organismsToReportArray);
+            organismsToReport.clear();
 
-                for (Organism organism : organismsReceived) {
-                    organismsRequested--;
-                    organisms.add(organism);
-                }
+            for (Organism organism : organismsReceived) {
+                organismsRequested--;
+                organisms.add(organism);
             }
         }
     }
@@ -48,7 +50,9 @@ public class ChaosNetManager extends Thread {
     }
 
     public static void reportOrganism(Organism o) {
-        organismsToReport.add(o);
+        synchronized (organismsToReport) {
+            organismsToReport.add(o);
+        }
     }
 
     public void addFailedSpawn(Organism organism) {

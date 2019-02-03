@@ -24,7 +24,7 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
         //Make sure we can load organisms
         if (!MinecraftAI.instance.client.isAuthenticated() || MinecraftAI.instance.session == null) return;
 
-        if (manager != null && manager.hasOrganisms()) {
+        if (a.size() < 10 && manager != null && manager.hasOrganisms()) {
             Organism organism = manager.getOrganism();
 
             EntityMan man = new EntityMan(world, organism);
@@ -40,7 +40,7 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             }
         }
 
-        if (!world.isRemote && a.size() < 10 && (manager == null || manager.isDone())) {
+        if (!world.isRemote && a.size() == 0 && (manager == null || manager.isDone())) {
             manager = new ChaosNetManager(10 - a.size());
             manager.start();
         } else {

@@ -128,18 +128,18 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
-        int time = this.ticksExisted/20;
-
-        if (time >= 10 && !world.isRemote) {
+        if (!this.world.isRemote && this.organism == null) {
             this.setDead();
-
-            if (!this.isDead) {
-                ChaosNetManager.reportOrganism(organism);
-            }
             return;
         }
 
-        if (!this.world.isRemote && this.organism == null) {
+        int time = this.ticksExisted/20;
+
+        if (time >= 10 && !world.isRemote) {
+            if (!this.isDead) {
+                ChaosNetManager.reportOrganism(organism);
+            }
+
             this.setDead();
             return;
         }
