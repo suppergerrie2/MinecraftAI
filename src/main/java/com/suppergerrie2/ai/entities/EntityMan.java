@@ -75,7 +75,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     double desiredPitch;
     double desiredYaw;
-    
+
     ChaosNetClient client = new ChaosNetClient();
 
     @SuppressWarnings("unused") //This constructor is needed for forge to work
@@ -128,25 +128,23 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
-    	 int time = this.ticksExisted/20;
-
-     	if(time >= 10 && !world.isRemote) {
-     		this.setDead();
-
-     		if(!this.isDead) {
-                ChaosNetManager.reportOrganism(organism);
-            }
-     		return;
-     	}
-     	
-        if(!this.world.isRemote && this.organism == null) {
+        if (!this.world.isRemote && this.organism == null) {
             this.setDead();
             return;
         }
-        
+
+        int time = this.ticksExisted/20;
+
+        if (time >= 10 && !world.isRemote) {
+            if (!this.isDead) {
+                ChaosNetManager.reportOrganism(organism);
+            }
+
+            this.setDead();
+            return;
+        }
 
         super.onUpdate();
-
 
         if (fakePlayer == null && !world.isRemote) {
             fakePlayer = new FakePlayer((WorldServer) this.world, profile, this);
@@ -216,12 +214,12 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 }
             }
 
-            //Calculate the block it wants to look at TODO: I think this is incorrect
+            //Calculate the block it wants to look at
             double yOffset = Math.sin(Math.toRadians(desiredPitch));
-            double zOffset = Math.cos(Math.toRadians(desiredYaw));
-            double xOffset = Math.sin(Math.toRadians(desiredYaw));
+            double zOffset = Math.cos(Math.toRadians(desiredYaw)) * Math.cos(Math.toRadians(desiredPitch));
+            double xOffset = Math.sin(Math.toRadians(desiredYaw)) * Math.cos(Math.toRadians(desiredPitch));
 
-            this.getLookHelper().setLookPosition(posX + xOffset, posY + this.getEyeHeight()+ yOffset, posZ + zOffset, 10, 10);
+            this.getLookHelper().setLookPosition(posX + xOffset, posY + this.getEyeHeight() + yOffset, posZ + zOffset, 10, 10);
             this.renderYawOffset = 0;
             this.setRotation(this.rotationYawHead, this.rotationPitch);
 
@@ -374,12 +372,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                     if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
 
                         EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
-                        
-                        
+
 
                         if (enumactionresult == EnumActionResult.SUCCESS) {
                             this.swingArm(hand);
-                            	
+
                             return;
                         }
                     }
@@ -406,8 +403,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
             return EnumActionResult.PASS;
-            
-            
+
+
         } else {
             int i = itemstack.getCount();
             ActionResult<ItemStack> actionresult = itemstack.useItemRightClick(world, fakePlayer, hand);
@@ -415,9 +412,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
             if (itemstack1 != itemstack || itemstack1.getCount() != i) {
                 this.setHeldItem(hand, itemstack1);
-                
 
-            	
+
                 if (itemstack1.isEmpty()) {
                     net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(fakePlayer, itemstack, hand);
                 }
@@ -430,7 +426,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     private EnumActionResult rightClickBlock(BlockPos pos, EnumFacing direction, Vec3d vec, EnumHand hand) {
         ItemStack itemstack = getHeldItem(hand);
 
-        if(itemstack.isEmpty()) return EnumActionResult.PASS;
+        if (itemstack.isEmpty()) return EnumActionResult.PASS;
 
         float f = (float) (vec.x - (double) pos.getX());
         float f1 = (float) (vec.y - (double) pos.getY());
@@ -507,10 +503,10 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
         //Check if block has been broken
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
             //Broken
-        	
-        	String debugMessage = this.getCustomNameTag() + " mined " + state.getBlock().getLocalizedName();
-        	MinecraftAI.chat(world, debugMessage);
-        	
+
+            String debugMessage = this.getCustomNameTag() + " mined " + state.getBlock().getLocalizedName();
+            MinecraftAI.chat(world, debugMessage);
+
             miningTicks = 0;
             this.blockSoundTimer = 0;
             world.playEvent(2001, pos, Block.getStateId(state));
@@ -522,7 +518,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 
             boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
-            
+
             itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
 
             state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
@@ -710,6 +706,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     //TODO
     private void addScore() {
-    
+
     }
 }
