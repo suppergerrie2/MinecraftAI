@@ -13,7 +13,7 @@ public class BotHubBlock extends Block {
 		super(material);
 		setTranslationKey(name);
 		setRegistryName(name);
-		
+		this.setBlockUnbreakable();
 	}
 	
 	@Override
