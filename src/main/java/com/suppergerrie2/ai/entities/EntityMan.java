@@ -133,7 +133,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             return;
         }
 
-        int time = this.ticksExisted/20;
+        int time = this.ticksExisted / 20;
 
         if (time >= 10 && !world.isRemote) {
             if (!this.isDead) {
@@ -182,11 +182,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                         String recipeID = ((CraftOutputNeuron) output).recipeID;
                         break;
                     case "TurnPitchOutput":
-                        desiredPitch = MathHelper.clamp(output.value, -1 ,1) * 180;
+                        desiredPitch = MathHelper.clamp(output.value * 2 - 1, -1, 1) * 90;
 
                         break;
                     case "TurnYawOutput":
-                        desiredYaw = MathHelper.clamp(output.value, -1 ,1) * 180;
+                        desiredYaw = MathHelper.clamp(output.value * 2 - 1, -1, 1) * 180;
 
                         break;
                     case "WalkSidewaysOutput":
