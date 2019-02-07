@@ -219,7 +219,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             double zOffset = Math.cos(Math.toRadians(desiredYaw)) * Math.cos(Math.toRadians(desiredPitch));
             double xOffset = Math.sin(Math.toRadians(desiredYaw)) * Math.cos(Math.toRadians(desiredPitch));
 
-            this.getLookHelper().setLookPosition(posX + xOffset, posY + this.getEyeHeight() + yOffset, posZ + zOffset, 10, 10);
+            this.getLookHelper().setLookPosition(posX + xOffset, posY + this.getEyeHeight() + yOffset, posZ + zOffset, 360, 360);
             this.renderYawOffset = 0;
             this.setRotation(this.rotationYawHead, this.rotationPitch);
 
