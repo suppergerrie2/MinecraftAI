@@ -656,8 +656,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             raytrace = new RayTraceResult(pointedEntity, entityPos);
         }
 
-        if(raytrace.typeOfHit==null) {
-            raytrace = new RayTraceResult(RayTraceResult.Type.MISS, raytrace.hitVec, raytrace.sideHit, raytrace.getBlockPos());
+        if(raytrace==null||raytrace.typeOfHit==null) {
+            raytrace = new RayTraceResult(RayTraceResult.Type.MISS, this.getPositionVector(), EnumFacing.DOWN, this.getPosition());
         }
 
         if (raytrace.typeOfHit != null) {
