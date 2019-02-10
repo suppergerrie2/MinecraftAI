@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
+import com.suppergerrie2.ChaosNetClient.components.FitnessRule;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
 import com.suppergerrie2.ai.EventHandler;
@@ -502,10 +503,26 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         //Check if block has been broken
         if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
-            //Broken
+            //Block broken
 
             String debugMessage = this.getCustomNameTag() + " mined " + state.getBlock().getLocalizedName();
             MinecraftAI.chat(world, debugMessage);
+
+            List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("BLOCK_MINED");
+            for (FitnessRule fitnessRule : fitnessRules) {
+                if (fitnessRule.getAttributeID() == null || fitnessRule.getAttributeValue() == null) {
+                    //fitnessrule doesnt specify specific block, so it will give the score for each mined block
+                    organism.increaseScore(fitnessRule.getScoreEffect());
+//                    organism.increaseLive(fitnessRule.getLiveEffect());
+                } else if (fitnessRule.getAttributeID().equals("BLOCK_ID")) {
+                    if (fitnessRule.getAttributeValue().equals(state.getBlock().getRegistryName().toString())) {
+                        organism.increaseScore(fitnessRule.getScoreEffect());
+//                    organism.increaseLive(fitnessRule.getLiveEffect());
+                    }
+                } else {
+                    System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
+                }
+            }
 
             miningTicks = 0;
             this.blockSoundTimer = 0;
@@ -639,7 +656,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             raytrace = new RayTraceResult(pointedEntity, entityPos);
         }
 
-        if (raytrace != null && raytrace.typeOfHit != null) {
+        if(raytrace==null||raytrace.typeOfHit==null) {
+            raytrace = new RayTraceResult(RayTraceResult.Type.MISS, this.getPositionVector(), EnumFacing.DOWN, this.getPosition());
+        }
+
+        if (raytrace.typeOfHit != null) {
             EventHandler.addRayTraceDebug(new EventHandler.RayTraceDebug(raytrace, this.getPositionVector().add(0, this.getEyeHeight(), 0)));
         }
         return raytrace;

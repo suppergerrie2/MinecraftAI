@@ -26,7 +26,7 @@ public class Eye {
         		double eyedist = supperCraftOrganism.owner.getDistanceSq(result.getBlockPos());
 
         		if(eyedist>startDistance*startDistance&&eyedist<distance*distance) {
-                    MinecraftAI.chat(supperCraftOrganism.owner.world, owner.getName() + " wants to see " + blockId);
+                    MinecraftAI.chat(supperCraftOrganism.owner.world, owner.getName() + " sees " + blockId);
                     return 1 - (eyedist / (distance*distance));
                 }
                 return -1;
