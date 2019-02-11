@@ -72,7 +72,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
     int rightClickDelay = 0;
 
     private int selectedItemIndex = 0;
-    private SupperCraftOrganism organism;
+    public SupperCraftOrganism organism;
 
     double desiredPitch;
     double desiredYaw;
@@ -129,6 +129,9 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
     @Override
     public void onUpdate() {
+    	//Updates Animations - By Mechanist
+        updateAction();
+        
         if (!this.world.isRemote && this.organism == null) {
             this.setDead();
             return;
@@ -136,7 +139,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
         int time = this.ticksExisted / 20;
 
-        if (time >= 10 && !world.isRemote) {
+        if (time >= 30 && !world.isRemote) {
             if (!this.isDead) {
                 ChaosNetManager.reportOrganism(organism);
             }
@@ -154,8 +157,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             }
         }
 
-        //Updates Animations - By Mechanist
-        updateAction();
+        
 
         if (this.isDead) {
             this.resetMining();
