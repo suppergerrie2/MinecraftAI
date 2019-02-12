@@ -5,6 +5,8 @@ import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.inventory.ContainerManInventory;
 import com.suppergerrie2.ai.networking.MineAndPlace;
 import com.suppergerrie2.ai.networking.PacketHandler;
+import com.suppergerrie2.ai.tileentity.TileEntityBotHub;
+
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -13,6 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import java.io.IOException;
 
 public class GuiManInventory extends GuiContainer {
+	
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Reference.MODID, "textures/gui/inventory.png");
     private final InventoryPlayer player;

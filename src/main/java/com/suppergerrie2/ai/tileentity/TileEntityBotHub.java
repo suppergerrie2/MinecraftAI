@@ -35,6 +35,7 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             if (man.getCanSpawnHere() && man.isNotColliding()) {
                 world.spawnEntity(man);
                 organismList.add(man.getUniqueID());
+                
             } else {
                 manager.addFailedSpawn(organism);
             }

@@ -14,6 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class BotHubBlock extends Block {
+	
 
 	public BotHubBlock(String name, Material material) {
 		super(material);
@@ -36,7 +37,7 @@ public class BotHubBlock extends Block {
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
 			EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		Minecraft.getMinecraft().displayGuiScreen(new GuiBotHub());
-		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+		return true;
 	}
 	
 }
