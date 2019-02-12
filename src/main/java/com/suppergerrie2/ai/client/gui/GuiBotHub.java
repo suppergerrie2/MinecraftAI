@@ -1,37 +1,48 @@
 package com.suppergerrie2.ai.client.gui;
 
-import java.io.IOException;
-
+import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.tileentity.TileEntityBotHub;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
+
+import java.io.IOException;
 
 public class GuiBotHub extends GuiScreen {
 	
 	private static final ResourceLocation TEXTURE = new ResourceLocation(Reference.MODID, "textures/gui/bothubgui.jpg");
 	int guiHeight = 119;
 	int guiWidth = 197;
-	TileEntityBotHub bothub;
+	private TileEntityBotHub bothub;
+	private int guiLeft;
+	private int guiTop;
+
+
+	public GuiBotHub(TileEntityBotHub bothub) {
+		this.bothub = bothub;
+	}
 	
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		Minecraft.getMinecraft().renderEngine.bindTexture(TEXTURE);
 		
-		int centX = (width / 2) - guiWidth / 2;
-		int centY = (height / 2) - guiHeight / 2;
-		drawTexturedModalRect(centX, centY, 0, 0, guiWidth, guiHeight);
-		
-		drawHoveringText("YEE", 0, 0);
+		drawTexturedModalRect(guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
+
+		for(int i = 0; i < bothub.organismsSpawned.size(); i++) {
+			Organism organism = bothub.organismsSpawned.get(i);
+			this.drawString(this.fontRenderer, organism.getName() + "-" + organism.getGeneration(), guiLeft+5, guiTop + 5 + i * 10, 0xFFFF00);
+		}
 		super.drawScreen(mouseX, mouseY, partialTicks);
 	}
 	
 	@Override
 	public void initGui() {
 		super.initGui();
+
+		this.guiLeft = (this.width - this.guiWidth) / 2;
+		this.guiTop = (this.height - this.guiHeight) / 2;
 	}
 	
 	@Override

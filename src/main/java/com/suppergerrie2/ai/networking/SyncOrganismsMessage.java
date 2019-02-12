@@ -5,12 +5,17 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SyncOrganismsMessage implements IMessage {
 
     List<SupperCraftOrganism> organisms;
     BlockPos blockHubPos;
+
+    public SyncOrganismsMessage() {
+
+    }
 
     public SyncOrganismsMessage(BlockPos blockHubPos, List<SupperCraftOrganism> organismList) {
         this.blockHubPos = blockHubPos;
@@ -22,6 +27,7 @@ public class SyncOrganismsMessage implements IMessage {
         this.blockHubPos = BlockPos.fromLong(buf.readLong());
 
         int amount = buf.readInt();
+        organisms = new ArrayList<>(amount);
 
         for (int i = 0; i < amount; i++) {
             organisms.add(SupperCraftOrganism.fromBytes(buf));
