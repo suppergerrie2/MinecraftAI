@@ -16,8 +16,7 @@ import java.util.UUID;
 public class TileEntityBotHub extends TileEntity implements ITickable {
 
     private static final double spawnRange = 10;
-    public List<?> organisms = new ArrayList<Object>();
-    List<UUID> organismList = new ArrayList<>();
+    public List<UUID> organismList = new ArrayList<>();
     ChaosNetManager manager;
 
     public void update() {
@@ -36,7 +35,6 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             if (man.getCanSpawnHere() && man.isNotColliding()) {
                 world.spawnEntity(man);
                 organismList.add(man.getUniqueID());
-                organisms.addAll(organism);
             } else {
                 manager.addFailedSpawn(organism);
             }
