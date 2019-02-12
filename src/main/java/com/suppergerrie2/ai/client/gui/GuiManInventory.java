@@ -3,10 +3,6 @@ package com.suppergerrie2.ai.client.gui;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.inventory.ContainerManInventory;
-import com.suppergerrie2.ai.networking.MineAndPlace;
-import com.suppergerrie2.ai.networking.PacketHandler;
-import com.suppergerrie2.ai.tileentity.TileEntityBotHub;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -62,16 +58,6 @@ public class GuiManInventory extends GuiContainer {
     
    @Override
    protected void actionPerformed(GuiButton button) throws IOException {
-	   if (button.enabled)
-       {
-           if (button.id == mine.id) {
-               PacketHandler.INSTANCE.sendToServer(new MineAndPlace(this.entityMan.getEntityId(), MineAndPlace.Action.TOGGLE_MINE));
-			   return;
-           } else if (button.id == place.id) {
-               PacketHandler.INSTANCE.sendToServer(new MineAndPlace(this.entityMan.getEntityId(), MineAndPlace.Action.TOGGLE_PLACE));
-               return;
-           }
-       }
 	   super.actionPerformed(button);
    }
   

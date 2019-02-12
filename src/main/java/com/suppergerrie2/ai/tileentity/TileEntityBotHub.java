@@ -4,6 +4,7 @@ package com.suppergerrie2.ai.tileentity;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.chaosnet.ChaosNetManager;
+import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
 import com.suppergerrie2.ai.entities.EntityMan;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
@@ -17,6 +18,7 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
 
     private static final double spawnRange = 10;
     public List<UUID> organismList = new ArrayList<>();
+    public List<SupperCraftOrganism> organismsSpawned = new ArrayList<>();
     ChaosNetManager manager;
 
     public void update() {
@@ -35,7 +37,8 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             if (man.getCanSpawnHere() && man.isNotColliding()) {
                 world.spawnEntity(man);
                 organismList.add(man.getUniqueID());
-                
+                organismsSpawned.add((SupperCraftOrganism) organism);
+
             } else {
                 manager.addFailedSpawn(organism);
             }
@@ -45,7 +48,14 @@ public class TileEntityBotHub extends TileEntity implements ITickable {
             manager = new ChaosNetManager(10 - organismList.size());
             manager.start();
         } else {
-            organismList.removeIf((id) -> ((WorldServer) world).getEntityFromUuid(id) == null);
+            organismList.removeIf((id) -> {
+                if (((WorldServer) world).getEntityFromUuid(id) == null) {
+                    organismsSpawned.removeIf((organism) -> organism.owner.getUniqueID().equals(id));
+                    return true;
+                }
+
+                return false;
+            });
         }
     }
 
