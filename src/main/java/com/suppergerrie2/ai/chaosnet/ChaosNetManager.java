@@ -51,6 +51,13 @@ public class ChaosNetManager extends Thread {
 
     public static void reportOrganism(Organism o) {
         synchronized (organismsToReport) {
+            if(organismsToReport.contains(o)) {
+                System.err.println("Trying to report an organism that has already been reported! " + o.getNamespace());
+                for(StackTraceElement i : Thread.currentThread().getStackTrace()) {
+                    System.err.println(i);
+                }
+                return;
+            }
             organismsToReport.add(o);
         }
     }

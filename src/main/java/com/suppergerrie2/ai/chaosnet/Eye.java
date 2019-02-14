@@ -1,7 +1,6 @@
 package com.suppergerrie2.ai.chaosnet;
 
 import com.suppergerrie2.ChaosNetClient.components.Organism;
-import com.suppergerrie2.ai.MinecraftAI;
 import net.minecraft.util.math.RayTraceResult;
 
 public class Eye {
@@ -26,7 +25,7 @@ public class Eye {
         		double eyedist = supperCraftOrganism.owner.getDistanceSq(result.getBlockPos());
 
         		if(eyedist>startDistance*startDistance&&eyedist<distance*distance) {
-                    MinecraftAI.chat(supperCraftOrganism.owner.world, owner.getName() + " sees " + blockId);
+//                    MinecraftAI.chat(supperCraftOrganism.owner.world, owner.getName() + " sees " + blockId);
                     return 1 - (eyedist / (distance*distance));
                 }
                 return -1;
