@@ -8,7 +8,6 @@ import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.FitnessRule;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
-import com.suppergerrie2.ai.EventHandler;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.chaosnet.ChaosNetManager;
@@ -543,201 +542,204 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 			if (itemstack.getItem().onBlockStartBreak(itemstack, pos, fakePlayer)) {
 				return;
 			}
+            boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
+
+            itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
+
+            state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
+
+            if (state.getBlock().removedByPlayer(state, world, pos, fakePlayer, true)) {
+                state.getBlock().onPlayerDestroy(world, pos, state);
+            } else {
+                harvest = false;
+            }
+
+            if (harvest) {
+                state.getBlock().harvestBlock(world, fakePlayer, pos, state, world.getTileEntity(pos), itemstack);
+            }
+        }
+    }
+
+    private void resetMining() {
+        miningTicks = 0;
+        this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
+        this.lastMinePos.down(255);
+    }
 
 
-			boolean harvest = state.getBlock().canHarvestBlock(world, pos, fakePlayer);
+    @Override
+    public void onDeath(@Nonnull DamageSource cause) {
+        super.onDeath(cause);
 
-			itemstack.onBlockDestroyed(world, state, pos, fakePlayer);
+        if (!world.isRemote) {
+            if (world.getMinecraftServer() != null) {
+                world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
+            }
 
-			state.getBlock().onBlockHarvested(world, pos, state, fakePlayer);
-
-			if (state.getBlock().removedByPlayer(state, world, pos, fakePlayer, true)) {
-				state.getBlock().onPlayerDestroy(world, pos, state);
-			} else {
-				harvest = false;
-			}
-
-			if (harvest) {
-				state.getBlock().harvestBlock(world, fakePlayer, pos, state, world.getTileEntity(pos), itemstack);
-			}
-		}
-	}
-
-	private void resetMining() {
-		miningTicks = 0;
-		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
-		this.lastMinePos.down(255);
-	}
+            ChaosNetManager.reportOrganism(this.organism);
+        }
 
 
-	@Override
-	public void onDeath(@Nonnull DamageSource cause) {
-		super.onDeath(cause);
+        this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
+    }
 
-		if (!world.isRemote) {
-			if (world.getMinecraftServer() != null) {
-				world.getMinecraftServer().getPlayerList().sendMessage(cause.getDeathMessage(this));
-			}
+    @Override
+    public void writeEntityToNBT(NBTTagCompound compound) {
+        super.writeEntityToNBT(compound);
 
-			ChaosNetManager.reportOrganism(this.organism);
-		}
+        compound.setTag(Reference.MODID + ":inventory", itemHandler.serializeNBT());
+    }
 
+    @Override
+    public void readEntityFromNBT(NBTTagCompound compound) {
+        super.readEntityFromNBT(compound);
 
-		this.world.sendBlockBreakProgress(this.getEntityId(), lastMinePos, -1);
-	}
+        if (compound.hasKey(Reference.MODID + ":inventory")) {
+            itemHandler.deserializeNBT(compound.getCompoundTag(Reference.MODID + ":inventory"));
+        }
+    }
 
-	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
-		super.writeEntityToNBT(compound);
+    public RayTraceResult rayTraceBlockEntity(float rotatePitch, float rotateYaw) {
+        Entity pointedEntity = null;
 
-		compound.setTag(Reference.MODID + ":inventory", itemHandler.serializeNBT());
-	}
+        double reachDistance = (double) this.getBlockReachDistance();
+        RayTraceResult raytrace = this.rayTrace(reachDistance, rotatePitch, rotateYaw);
+        Vec3d eyePosition = this.getPositionEyes(1);
 
-	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
-		super.readEntityFromNBT(compound);
+        boolean flag = false;
 
-		if (compound.hasKey(Reference.MODID + ":inventory")) {
-			itemHandler.deserializeNBT(compound.getCompoundTag(Reference.MODID + ":inventory"));
-		}
-	}
+        //Defaults to reachdistance
+        double distanceFromHit = reachDistance;
 
-	public RayTraceResult rayTraceBlockEntity(float rotatePitch, float rotateYaw) {
-		Entity pointedEntity = null;
+        if (reachDistance > 3.0D) {
+            flag = true;
+        }
 
-		double reachDistance = (double) this.getBlockReachDistance();
-		RayTraceResult raytrace = this.rayTrace(reachDistance, rotatePitch, rotateYaw);
-		Vec3d eyePosition = this.getPositionEyes(1);
+        if (raytrace != null) {
+            distanceFromHit = raytrace.hitVec.distanceTo(eyePosition);
+        }
 
-		boolean flag = false;
+        double yOffset = Math.sin(Math.toRadians((-rotationPitch) + rotatePitch));
+        double zOffset = Math.cos(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
+        double xOffset = Math.sin(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
 
-		//Defaults to reachdistance
-		double distanceFromHit = reachDistance;
+        Vec3d lookVector = new Vec3d(xOffset, yOffset, zOffset);
 
-		if (reachDistance > 3.0D) {
-			flag = true;
-		}
+        Vec3d scaledLookVector = eyePosition.add(xOffset * reachDistance, yOffset * reachDistance, zOffset * reachDistance);
 
-		if (raytrace != null) {
-			distanceFromHit = raytrace.hitVec.distanceTo(eyePosition);
-		}
+        Vec3d entityPos = null;
 
-		Vec3d lookVector = this.getLook(1.0F).rotatePitch(rotatePitch).rotateYaw(rotateYaw);
-		Vec3d scaledLookVector = eyePosition.add(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
+        @SuppressWarnings("Guava") List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, e -> e != null && e.canBeCollidedWith()));
+        double minEntityDist = distanceFromHit;
 
-		Vec3d entityPos = null;
+        for (Entity entity1 : list) {
+            AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow((double) entity1.getCollisionBorderSize());
+            RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(eyePosition, scaledLookVector);
 
-		@SuppressWarnings("Guava") List<Entity> list = this.world.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expand(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance).grow(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, e -> e != null && e.canBeCollidedWith()));
-		double minEntityDist = distanceFromHit;
+            if (axisalignedbb.contains(eyePosition)) {
+                if (minEntityDist >= 0.0D) {
+                    pointedEntity = entity1;
+                    entityPos = raytraceresult == null ? eyePosition : raytraceresult.hitVec;
+                    minEntityDist = 0.0D;
+                }
+            } else if (raytraceresult != null) {
+                double distanceToEntity = eyePosition.distanceTo(raytraceresult.hitVec);
 
-		for (Entity entity1 : list) {
-			AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow((double) entity1.getCollisionBorderSize());
-			RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(eyePosition, scaledLookVector);
+                if (distanceToEntity < minEntityDist || minEntityDist == 0.0D) {
+                    if (entity1.getLowestRidingEntity() == this.getLowestRidingEntity() && !entity1.canRiderInteract()) {
+                        if (minEntityDist == 0.0D) {
+                            pointedEntity = entity1;
+                            entityPos = raytraceresult.hitVec;
+                        }
+                    } else {
+                        pointedEntity = entity1;
+                        entityPos = raytraceresult.hitVec;
+                        minEntityDist = distanceToEntity;
+                    }
+                }
+            }
+        }
 
-			if (axisalignedbb.contains(eyePosition)) {
-				if (minEntityDist >= 0.0D) {
-					pointedEntity = entity1;
-					entityPos = raytraceresult == null ? eyePosition : raytraceresult.hitVec;
-					minEntityDist = 0.0D;
-				}
-			} else if (raytraceresult != null) {
-				double distanceToEntity = eyePosition.distanceTo(raytraceresult.hitVec);
+        if (pointedEntity != null && flag && eyePosition.distanceTo(entityPos) > 3.0D) {
+            pointedEntity = null;
+            raytrace = new RayTraceResult(RayTraceResult.Type.MISS, entityPos, EnumFacing.DOWN, new BlockPos(entityPos));
+        }
 
-				if (distanceToEntity < minEntityDist || minEntityDist == 0.0D) {
-					if (entity1.getLowestRidingEntity() == this.getLowestRidingEntity() && !entity1.canRiderInteract()) {
-						if (minEntityDist == 0.0D) {
-							pointedEntity = entity1;
-							entityPos = raytraceresult.hitVec;
-						}
-					} else {
-						pointedEntity = entity1;
-						entityPos = raytraceresult.hitVec;
-						minEntityDist = distanceToEntity;
-					}
-				}
-			}
-		}
+        if (pointedEntity != null && (minEntityDist < distanceFromHit || raytrace == null)) {
+            raytrace = new RayTraceResult(pointedEntity, entityPos);
+        }
 
-		if (pointedEntity != null && flag && eyePosition.distanceTo(entityPos) > 3.0D) {
-			pointedEntity = null;
-			raytrace = new RayTraceResult(RayTraceResult.Type.MISS, entityPos, EnumFacing.DOWN, new BlockPos(entityPos));
-		}
+        if (raytrace == null || raytrace.typeOfHit == null) {
+            raytrace = new RayTraceResult(RayTraceResult.Type.MISS, this.getPositionVector(), EnumFacing.DOWN, this.getPosition());
+        }
 
-		if (pointedEntity != null && (minEntityDist < distanceFromHit || raytrace == null)) {
-			raytrace = new RayTraceResult(pointedEntity, entityPos);
-		}
+        return raytrace;
+    }
 
-		if(raytrace==null||raytrace.typeOfHit==null) {
-			raytrace = new RayTraceResult(RayTraceResult.Type.MISS, this.getPositionVector(), EnumFacing.DOWN, this.getPosition());
-		}
+    private RayTraceResult rayTrace(double blockReachDistance, float rotatePitch, float rotateYaw) {
+        Vec3d vec3d = this.getPositionEyes(1);
+        double yOffset = Math.sin(Math.toRadians((-rotationPitch) + rotatePitch));
+        double zOffset = Math.cos(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
+        double xOffset = Math.sin(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
 
-		if (raytrace.typeOfHit != null) {
-			EventHandler.addRayTraceDebug(new EventHandler.RayTraceDebug(raytrace, this.getPositionVector().add(0, this.getEyeHeight(), 0)));
-		}
-		return raytrace;
-	}
+        Vec3d vec3d2 = vec3d.add(xOffset * blockReachDistance, yOffset * blockReachDistance, zOffset * blockReachDistance);
+        RayTraceResult result = this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
 
-	private RayTraceResult rayTrace(double blockReachDistance, float rotatePitch, float rotateYaw) {
-		Vec3d vec3d = this.getPositionEyes(1);
-		Vec3d vec3d1 = new Vec3d(0, 0, 1).rotateYaw((float) Math.toRadians(-rotationYawHead + rotateYaw));
-		Vec3d vec3d2 = vec3d.add(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
-		RayTraceResult result = this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
+        return result;
+    }
 
-		return result;
-	}
+    private float getBlockReachDistance() {
+        float attrib = (float) this.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue();
+        return attrib - 0.5F;
+    }
 
-	private float getBlockReachDistance() {
-		float attrib = (float) this.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue();
-		return attrib - 0.5F;
-	}
+    public IItemHandler getItemHandler() {
+        return itemHandler;
+    }
 
-	public IItemHandler getItemHandler() {
-		return itemHandler;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+        if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            return (T) itemHandler;
+        }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
-		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-			return (T) itemHandler;
-		}
+        return super.getCapability(capability, facing);
+    }
 
-		return super.getCapability(capability, facing);
-	}
+    @Override
+    public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+        return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
+    }
 
-	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
-		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
-	}
+    public void setSelectedIndex(int selectedIndex) {
+        this.selectedItemIndex = selectedIndex;
+        this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedIndex));
+    }
 
-	public void setSelectedIndex(int selectedIndex) {
-		this.selectedItemIndex = selectedIndex;
-		this.setHeldItem(EnumHand.MAIN_HAND, this.itemHandler.getStackInSlot(selectedIndex));
-	}
+    @Override
+    public void writeSpawnData(ByteBuf buffer) {
+        ByteBufUtils.writeItemStack(buffer, itemHandler.getOffhand());
+        buffer.writeInt(selectedItemIndex);
+        ByteBufUtils.writeItemStack(buffer, itemHandler.getStackInSlot(selectedItemIndex));
+    }
 
-	@Override
-	public void writeSpawnData(ByteBuf buffer) {
-		ByteBufUtils.writeItemStack(buffer, itemHandler.getOffhand());
-		buffer.writeInt(selectedItemIndex);
-		ByteBufUtils.writeItemStack(buffer, itemHandler.getStackInSlot(selectedItemIndex));
-	}
+    @Override
+    public void readSpawnData(ByteBuf additionalData) {
+        itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
+        itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
+    }
 
-	@Override
-	public void readSpawnData(ByteBuf additionalData) {
-		itemHandler.setStackInSlot(itemHandler.getOffhandSlot(), ByteBufUtils.readItemStack(additionalData));
-		itemHandler.setStackInSlot(additionalData.readInt(), ByteBufUtils.readItemStack(additionalData));
-	}
+    @Override
+    public void setDead() {
 
-	@Override
-	public void setDead() {
+        this.resetMining();
 
-		this.resetMining();
+        super.setDead();
+    }
 
-		super.setDead();
-	}
+    //TODO
+    private void addScore() {
 
-	//TODO
-	private void addScore() {
-
-	}
+    }
 }
