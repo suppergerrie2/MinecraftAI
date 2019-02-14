@@ -8,7 +8,6 @@ import com.suppergerrie2.ChaosNetClient.ChaosNetClient;
 import com.suppergerrie2.ChaosNetClient.components.FitnessRule;
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ChaosNetClient.components.nnet.neurons.OutputNeuron;
-import com.suppergerrie2.ai.EventHandler;
 import com.suppergerrie2.ai.MinecraftAI;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.chaosnet.ChaosNetManager;
@@ -611,8 +610,13 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             distanceFromHit = raytrace.hitVec.distanceTo(eyePosition);
         }
 
-        Vec3d lookVector = this.getLook(1.0F).rotatePitch(rotatePitch).rotateYaw(rotateYaw);
-        Vec3d scaledLookVector = eyePosition.add(lookVector.x * reachDistance, lookVector.y * reachDistance, lookVector.z * reachDistance);
+        double yOffset = Math.sin(Math.toRadians((-rotationPitch) + rotatePitch));
+        double zOffset = Math.cos(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
+        double xOffset = Math.sin(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
+
+        Vec3d lookVector = new Vec3d(xOffset, yOffset, zOffset);
+
+        Vec3d scaledLookVector = eyePosition.add(xOffset * reachDistance, yOffset * reachDistance, zOffset * reachDistance);
 
         Vec3d entityPos = null;
 
@@ -656,20 +660,20 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             raytrace = new RayTraceResult(pointedEntity, entityPos);
         }
 
-        if(raytrace==null||raytrace.typeOfHit==null) {
+        if (raytrace == null || raytrace.typeOfHit == null) {
             raytrace = new RayTraceResult(RayTraceResult.Type.MISS, this.getPositionVector(), EnumFacing.DOWN, this.getPosition());
         }
 
-        if (raytrace.typeOfHit != null) {
-            EventHandler.addRayTraceDebug(new EventHandler.RayTraceDebug(raytrace, this.getPositionVector().add(0, this.getEyeHeight(), 0)));
-        }
         return raytrace;
     }
 
     private RayTraceResult rayTrace(double blockReachDistance, float rotatePitch, float rotateYaw) {
         Vec3d vec3d = this.getPositionEyes(1);
-        Vec3d vec3d1 = new Vec3d(0, 0, 1).rotateYaw((float) Math.toRadians(-rotationYawHead + rotateYaw));
-        Vec3d vec3d2 = vec3d.add(vec3d1.x * blockReachDistance, vec3d1.y * blockReachDistance, vec3d1.z * blockReachDistance);
+        double yOffset = Math.sin(Math.toRadians((-rotationPitch) + rotatePitch));
+        double zOffset = Math.cos(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
+        double xOffset = Math.sin(Math.toRadians((-rotationYaw) + rotateYaw)) * Math.cos(Math.toRadians(-rotationPitch + rotatePitch));
+
+        Vec3d vec3d2 = vec3d.add(xOffset * blockReachDistance, yOffset * blockReachDistance, zOffset * blockReachDistance);
         RayTraceResult result = this.world.rayTraceBlocks(vec3d, vec3d2, false, false, true);
 
         return result;
