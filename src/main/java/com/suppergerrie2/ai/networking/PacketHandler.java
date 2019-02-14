@@ -13,7 +13,7 @@ public class PacketHandler {
 
     public static void registerMessages() {
         INSTANCE.registerMessage(SyncHandsMessageHandler.class, SyncHandsMessage.class, ID++, Side.CLIENT);
-        INSTANCE.registerMessage(MineAndPlaceHandler.class, MineAndPlace.class, ID++, Side.SERVER);
+        INSTANCE.registerMessage(SyncOrganismsMessageHandler.class, SyncOrganismsMessage.class, ID++, Side.CLIENT);
     }
 
 }

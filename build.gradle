@@ -47,7 +47,7 @@ configurations {
 }
 
 dependencies {
-    shade('com.github.suppergerrie2:JavaChaosNetClient:bc124c3c88') {changing = true}
+    shade('com.github.suppergerrie2:JavaChaosNetClient:01e61519d6') {changing = true}
 }
 
 jar {
