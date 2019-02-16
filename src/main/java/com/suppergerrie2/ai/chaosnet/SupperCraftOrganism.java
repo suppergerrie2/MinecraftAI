@@ -15,8 +15,8 @@ public class SupperCraftOrganism extends Organism {
     public final transient int ownerId; //Client only
 
     //For use on client
-    public SupperCraftOrganism(int ownerID, String trainingRoomNamespace, String namespace, String name, int generation, String ownerUsername, String speciesNamespace, double score, double timeToLive) {
-        super(trainingRoomNamespace, namespace, name, generation, ownerUsername, speciesNamespace, null, score, timeToLive);
+    public SupperCraftOrganism(int ownerID, String trainingRoomNamespace, String namespace, String name, int generation, String ownerUsername, String speciesNamespace, double score, double timeToLive, double liveLeft) {
+        super(trainingRoomNamespace, namespace, name, generation, ownerUsername, speciesNamespace, null, score, timeToLive, liveLeft);
 
         this.ownerId = ownerID;
     }
@@ -65,6 +65,7 @@ public class SupperCraftOrganism extends Organism {
         ByteBufUtils.writeUTF8String(buf, getSpeciesNamespace());
         buf.writeDouble(getScore());
         buf.writeDouble(getTimeToLive());
+        buf.writeDouble(getLiveLeft());
     }
 
     public static SupperCraftOrganism fromBytes(ByteBuf buf) {
@@ -78,8 +79,8 @@ public class SupperCraftOrganism extends Organism {
         String speciesNamespace = ByteBufUtils.readUTF8String(buf);
         double score = buf.readDouble();
         double timeToLive = buf.readDouble();
+        double liveLeft = buf.readDouble();
 
-
-        return new SupperCraftOrganism(ownerID, trainingRoomNamespace, namespace, name, generation, ownerUsername, speciesNamespace, score, timeToLive);
+        return new SupperCraftOrganism(ownerID, trainingRoomNamespace, namespace, name, generation, ownerUsername, speciesNamespace, score, timeToLive, liveLeft);
     }
 }
