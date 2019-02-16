@@ -141,9 +141,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             return;
         }
 
-        int time = this.ticksExisted / 20;
-
-        if (!world.isRemote && time >= organism.liveLeft && !this.isDead) {
+        if (!world.isRemote && (organism.liveLeft-=1d/20d)<0 && !this.isDead) {
             ChaosNetManager.reportOrganism(organism);
 
             this.setDead();
