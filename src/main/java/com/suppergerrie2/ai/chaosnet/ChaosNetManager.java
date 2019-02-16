@@ -32,6 +32,7 @@ public class ChaosNetManager extends Thread {
 
             for (Organism organism : organismsReceived) {
                 organismsRequested--;
+                organism.liveLeft = 30;
                 organisms.add(organism);
             }
         }
