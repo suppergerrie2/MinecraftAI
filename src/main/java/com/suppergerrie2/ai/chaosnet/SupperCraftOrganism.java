@@ -65,7 +65,7 @@ public class SupperCraftOrganism extends Organism {
         ByteBufUtils.writeUTF8String(buf, getSpeciesNamespace());
         buf.writeDouble(getScore());
         buf.writeDouble(getTimeToLive());
-        buf.writeDouble(getLiveLeft());
+        buf.writeDouble(liveLeft);
     }
 
     public static SupperCraftOrganism fromBytes(ByteBuf buf) {

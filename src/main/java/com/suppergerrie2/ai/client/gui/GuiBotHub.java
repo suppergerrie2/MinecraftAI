@@ -35,7 +35,7 @@ public class GuiBotHub extends GuiScreen {
 			this.drawString(this.fontRenderer, organism.getName(), guiLeft+5, guiTop + 5 + i * 10, 0xFFFF00);
 			this.drawString(this.fontRenderer, "Gen " + organism.getGeneration(), guiLeft + 55, guiTop + 5 + i * 10, 0xFFFF00);
 			this.drawString(this.fontRenderer, "Score " + organism.getScore(), guiLeft + 100, guiTop + 5 + i * 10, 0xFFFF00);
-			this.drawString(this.fontRenderer, "Life " + (Math.floor(organism.getLiveLeft())), guiLeft + 160, guiTop + 5 + i * 10, 0xFFFF00);
+			this.drawString(this.fontRenderer, "Life " + (Math.floor(organism.liveLeft)), guiLeft + 160, guiTop + 5 + i * 10, 0xFFFF00);
 		}
 		
 		super.drawScreen(mouseX, mouseY, partialTicks);
