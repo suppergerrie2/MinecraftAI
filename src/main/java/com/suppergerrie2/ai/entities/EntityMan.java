@@ -193,12 +193,13 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 					String recipeID = ((CraftOutputNeuron) output).recipeID;
 					break;
 				case "TurnPitchOutput":
-					desiredPitch = MathHelper.clamp(output.value * 2 - 1, -1, 1) * 90;
-
+					double delta = ((output.value * 2) - 1) * 45;
+					desiredPitch += delta;
+					
 					break;
 				case "TurnYawOutput":
-					desiredYaw = MathHelper.clamp(output.value * 2 - 1, -1, 1) * 360;
-					System.out.println(desiredYaw);
+					double delta1 = ((output.value * 2) - 1) * 45;
+					desiredYaw += delta1;
 
 					break;
 				case "WalkSidewaysOutput":

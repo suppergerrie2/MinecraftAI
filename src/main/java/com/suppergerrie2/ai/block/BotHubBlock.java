@@ -50,7 +50,9 @@ public class BotHubBlock extends Block {
 		}
 
 		if (worldIn.isRemote) {
-			Minecraft.getMinecraft().displayGuiScreen(new GuiBotHub(botHub));
+			GuiBotHub bothub = new GuiBotHub(botHub);
+			Minecraft.getMinecraft().displayGuiScreen(bothub);
+			bothub.updateButtons();
 		} else {
 			PacketHandler.INSTANCE.sendTo(new SyncOrganismsMessage(pos, botHub.organismsSpawned), (EntityPlayerMP) playerIn);
 		}
