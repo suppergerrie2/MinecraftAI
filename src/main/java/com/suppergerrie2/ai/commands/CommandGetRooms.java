@@ -5,6 +5,7 @@ import com.suppergerrie2.ai.MinecraftAI;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 
@@ -25,6 +26,10 @@ public class CommandGetRooms extends CommandBase {
         if (args.length > 0) {
             sender.sendMessage(new TextComponentString("No need to pass args! :P"));
             return;
+        }
+
+        if(sender.getCommandSenderEntity() instanceof EntityPlayerMP) {
+            EntityPlayerMP player = (EntityPlayerMP)sender.getCommandSenderEntity();
         }
 
         TrainingRoom[] rooms = MinecraftAI.instance.client.getTrainingRooms();

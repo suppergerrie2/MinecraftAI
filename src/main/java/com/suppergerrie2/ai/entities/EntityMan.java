@@ -141,7 +141,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             return;
         }
 
-        if (!world.isRemote && (organism.liveLeft-=1d/20d)<0 && !this.isDead) {
+        if (!world.isRemote && (organism.liveLeft -= 1d / 20d) < 0 && !this.isDead) {
             ChaosNetManager.reportOrganism(organism);
 
             this.setDead();
@@ -459,19 +459,22 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
                 }
             }
 
-
-            String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
-            MinecraftAI.chat(world, debugMessage);
-
             if (!flag) {
                 if (itemstack.isEmpty()) {
                     return EnumActionResult.PASS;
                 } else if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
                     return EnumActionResult.PASS;
                 } else {
-                    return itemstack.onItemUse(fakePlayer, world, pos, hand, direction, f, f1, f2);
+                    EnumActionResult result = itemstack.onItemUse(fakePlayer, world, pos, hand, direction, f, f1, f2);
+                    if (result == EnumActionResult.SUCCESS) {
+                        String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
+                        MinecraftAI.chat(world, debugMessage);
+                    }
+                    return result;
                 }
             } else {
+                String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
+                MinecraftAI.chat(world, debugMessage);
                 return EnumActionResult.SUCCESS;
             }
         }
