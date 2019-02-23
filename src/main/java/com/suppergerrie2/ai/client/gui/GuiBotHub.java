@@ -1,15 +1,11 @@
 package com.suppergerrie2.ai.client.gui;
 
-import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
-import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.tileentity.TileEntityBotHub;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 
 import java.io.IOException;

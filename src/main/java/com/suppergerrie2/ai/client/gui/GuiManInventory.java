@@ -3,12 +3,9 @@ package com.suppergerrie2.ai.client.gui;
 import com.suppergerrie2.ai.Reference;
 import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.inventory.ContainerManInventory;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
-
-import java.io.IOException;
 
 public class GuiManInventory extends GuiContainer {
 	

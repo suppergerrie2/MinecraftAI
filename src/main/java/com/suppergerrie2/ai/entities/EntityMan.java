@@ -36,9 +36,6 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.ForgeChunkManager.Ticket;
-import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
@@ -75,8 +72,6 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 	double desiredPitch;
 	double desiredYaw;
-
-	private Ticket chunkTicket;
 
 	ChaosNetClient client = new ChaosNetClient();
 
@@ -146,15 +141,11 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 			return;
 		}
 
-		if (!world.isRemote && (organism.liveLeft-=1d/20d)<0 && !this.isDead) {
+		if (!world.isRemote && (organism.liveLeft -= 1d / 20d) < 0 && !this.isDead) {
 			ChaosNetManager.reportOrganism(organism);
 
 			this.setDead();
 			return;
-		}
-
-		if (!this.world.isRemote) {
-			this.setCustomNameTag(organism.getName() + " " + Math.floor(organism.liveLeft));
 		}
 
 		super.onUpdate();
@@ -184,50 +175,50 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 			for (OutputNeuron output : networkOutput) {
 				//Check the type of the output and do something based on that output's value
 				switch (output.getType()) {
-				case "JumpOutput":
-					if (output.value > 0.5) {
-						this.jumpHelper.setJumping();
-					}
-					break;
-				case "CraftOutput":
-					String recipeID = ((CraftOutputNeuron) output).recipeID;
-					break;
-				case "TurnPitchOutput":
-					double delta = ((output.value * 2) - 1) * 45;
-					desiredPitch += delta;
-					
-					break;
-				case "TurnYawOutput":
-					double delta1 = ((output.value * 2) - 1) * 45;
-					desiredYaw += delta1;
+					case "JumpOutput":
+						if (output.value > 0.5) {
+							this.jumpHelper.setJumping();
+						}
+						break;
+					case "CraftOutput":
+						String recipeID = ((CraftOutputNeuron) output).recipeID;
+						break;
+					case "TurnPitchOutput":
+						double delta = ((output.value * 2) - 1) * 45;
+						desiredPitch += delta;
 
-					break;
-				case "WalkSidewaysOutput":
-					if(output.value == 0) {
-						strafe = 0;
-					}else if(output.value > 0.5) {
-						strafe = 0.22D;
-					} else if (output.value < 0.5) {
-						strafe = -0.22D;
-					}
-					break;
-				case "WalkForwardOutput":
-					if(output.value == 0) {
-						forward = 0;
-					}else if(output.value > 0.5) {
-						forward = 0.22D;
-					} else if (output.value < 0.5) {
-						forward = -0.22D;
-					}
-					break;
-				case "LeftClickOutput":
-					leftClicking = output.value > 0.5;
-					break;
-				case "RightClickOutput":
-					rightClicking = output.value > 0.5;
-					break;
-				default:
-					System.out.println("Unknown output type " + output.getType());
+						break;
+					case "TurnYawOutput":
+						double delta1 = ((output.value * 2) - 1) * 45;
+						desiredYaw += delta1;
+
+						break;
+					case "WalkSidewaysOutput":
+						if (output.value == 0) {
+							strafe = 0;
+						} else if (output.value > 0.5) {
+							strafe = 0.22D;
+						} else if (output.value < 0.5) {
+							strafe = -0.22D;
+						}
+						break;
+					case "WalkForwardOutput":
+						if (output.value == 0) {
+							forward = 0;
+						} else if (output.value > 0.5) {
+							forward = 0.22D;
+						} else if (output.value < 0.5) {
+							forward = -0.22D;
+						}
+						break;
+					case "LeftClickOutput":
+						leftClicking = output.value > 0.5;
+						break;
+					case "RightClickOutput":
+						rightClicking = output.value > 0.5;
+						break;
+					default:
+						System.out.println("Unknown output type " + output.getType());
 				}
 			}
 
@@ -299,8 +290,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 		if (item.cannotPickup()) return;
 
 		ItemStack stack = item.getItem();
-		
-		
+
+
 		List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("ITEM_COLLECTED");
 		String debugMessage = "";
 		for (FitnessRule fitnessRule : fitnessRules) {
@@ -318,8 +309,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 			} else {
 				System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
 			}
-			
-			
+
+
 		}
 		MinecraftAI.chat(world, debugMessage);
 		for (int i = 0; i < this.itemHandler.getSlots() && !stack.isEmpty(); i++) {
@@ -349,15 +340,15 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 	@Nonnull
 	public ItemStack getItemStackFromSlot(EntityEquipmentSlot slotIn) {
 		switch (slotIn) {
-		case MAINHAND:
-			return this.itemHandler.getStackInSlot(selectedItemIndex);
-		case OFFHAND:
-			return this.itemHandler.getOffhand();
-		case FEET:
-		case LEGS:
-		case CHEST:
-		case HEAD:
-			return super.getItemStackFromSlot(slotIn);
+			case MAINHAND:
+				return this.itemHandler.getStackInSlot(selectedItemIndex);
+			case OFFHAND:
+				return this.itemHandler.getOffhand();
+			case FEET:
+			case LEGS:
+			case CHEST:
+			case HEAD:
+				return super.getItemStackFromSlot(slotIn);
 		}
 
 		return ItemStack.EMPTY;
@@ -379,19 +370,19 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 		if (result == null) return;
 
 		switch (result.typeOfHit) {
-		case BLOCK:
-			mine(result.getBlockPos());
-			swingArm(EnumHand.MAIN_HAND);
-			break;
-		case ENTITY:
-			if (!lastTickLeftClicked) {
-				fakePlayer.attackTargetEntityWithCurrentItem(result.entityHit);
+			case BLOCK:
+				mine(result.getBlockPos());
 				swingArm(EnumHand.MAIN_HAND);
-			}
-		case MISS:
-		default:
-			resetMining();
-			break;
+				break;
+			case ENTITY:
+				if (!lastTickLeftClicked) {
+					fakePlayer.attackTargetEntityWithCurrentItem(result.entityHit);
+					swingArm(EnumHand.MAIN_HAND);
+				}
+			case MISS:
+			default:
+				resetMining();
+				break;
 		}
 		lastTickLeftClicked = true;
 	}
@@ -405,27 +396,27 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 		for (EnumHand hand : EnumHand.values()) {
 
 			switch (result.typeOfHit) {
-			case BLOCK:
-				BlockPos blockpos = result.getBlockPos();
+				case BLOCK:
+					BlockPos blockpos = result.getBlockPos();
 
-				if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
+					if (this.world.getBlockState(blockpos).getMaterial() != Material.AIR) {
 
-					EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
+						EnumActionResult enumactionresult = rightClickBlock(blockpos, result.sideHit, result.hitVec, hand);
 
 
-					if (enumactionresult == EnumActionResult.SUCCESS) {
-						this.swingArm(hand);
+						if (enumactionresult == EnumActionResult.SUCCESS) {
+							this.swingArm(hand);
 
-						return;
+							return;
+						}
 					}
-				}
 
-				List<UUID> uuids = new ArrayList<>();
+					List<UUID> uuids = new ArrayList<>();
 
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 
 			ItemStack itemstack = getHeldItem(hand);
@@ -494,7 +485,7 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 				if (!itemblock.canPlaceBlockOnSide(world, pos, direction, fakePlayer, itemstack)) {
 					return EnumActionResult.FAIL;
 				} else {
-					
+
 					List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("BLOCK_PLACED");
 					String debugMessage = "";
 					for (FitnessRule fitnessRule : fitnessRules) {
@@ -508,20 +499,17 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 								debugMessage = this.getCustomNameTag() + " Earned " + fitnessRule.getScoreEffect() + " points for picking up " + itemstack.getDisplayName();
 								organism.increaseScore(fitnessRule.getScoreEffect());
 								organism.increaseLive(fitnessRule.getLiveEffect());
-								
+
 							}
 						} else {
 							System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
 						}
-						
-						
+
+
 					}
 					MinecraftAI.chat(world, debugMessage);
 				}
 			}
-
-
-			
 
 			if (!flag) {
 				if (itemstack.isEmpty()) {
@@ -529,9 +517,16 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 				} else if (fakePlayer.getCooldownTracker().hasCooldown(itemstack.getItem())) {
 					return EnumActionResult.PASS;
 				} else {
-					return itemstack.onItemUse(fakePlayer, world, pos, hand, direction, f, f1, f2);
+					EnumActionResult result = itemstack.onItemUse(fakePlayer, world, pos, hand, direction, f, f1, f2);
+					if (result == EnumActionResult.SUCCESS) {
+						String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
+						MinecraftAI.chat(world, debugMessage);
+					}
+					return result;
 				}
 			} else {
+				String debugMessage = this.getCustomNameTag() + " placed " + itemstack.getDisplayName();
+				MinecraftAI.chat(world, debugMessage);
 				return EnumActionResult.SUCCESS;
 			}
 		}
@@ -566,28 +561,27 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 		if (state.getPlayerRelativeBlockHardness(fakePlayer, world, pos) * miningTicks > 1.0f) {
 			//Block broken
 
-
-			List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("BLOCK_MINED");
-			String debugMessage = "";
-			for (FitnessRule fitnessRule : fitnessRules) {
-				if (fitnessRule.getAttributeID() == null || fitnessRule.getAttributeValue() == null) {
-					//fitnessrule doesnt specify specific block, so it will give the score for each mined block
-					debugMessage = this.getCustomNameTag() + " Earned " + fitnessRule.getScoreEffect() + " points for mining " + state.getBlock().getLocalizedName();
-					organism.increaseScore(fitnessRule.getScoreEffect());
-					organism.increaseLive(fitnessRule.getLiveEffect());
-				} else if (fitnessRule.getAttributeID().equals("BLOCK_ID")) {
-					if (fitnessRule.getAttributeValue().equals(state.getBlock().getRegistryName().toString())) {
+			if (MinecraftAI.instance.session != null) {
+				List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("BLOCK_MINED");
+				String debugMessage = "";
+				for (FitnessRule fitnessRule : fitnessRules) {
+					if (fitnessRule.getAttributeID() == null || fitnessRule.getAttributeValue() == null) {
+						//fitnessrule doesnt specify specific block, so it will give the score for each mined block
 						debugMessage = this.getCustomNameTag() + " Earned " + fitnessRule.getScoreEffect() + " points for mining " + state.getBlock().getLocalizedName();
 						organism.increaseScore(fitnessRule.getScoreEffect());
 						organism.increaseLive(fitnessRule.getLiveEffect());
+					} else if (fitnessRule.getAttributeID().equals("BLOCK_ID")) {
+						if (fitnessRule.getAttributeValue().equals(state.getBlock().getRegistryName().toString())) {
+							debugMessage = this.getCustomNameTag() + " Earned " + fitnessRule.getScoreEffect() + " points for mining " + state.getBlock().getLocalizedName();
+							organism.increaseScore(fitnessRule.getScoreEffect());
+							organism.increaseLive(fitnessRule.getLiveEffect());
+						}
+					} else {
+						System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
 					}
-				} else {
-					System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
 				}
-				
-				
+				MinecraftAI.chat(world, debugMessage);
 			}
-			MinecraftAI.chat(world, debugMessage);
 
 			miningTicks = 0;
 			this.blockSoundTimer = 0;
@@ -793,7 +787,4 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 		super.setDead();
 	}
 }
-
-
-
 

@@ -87,6 +87,7 @@ public class MinecraftAI {
         event.registerServerCommand(new CommandCreateRoom());
         event.registerServerCommand(new CommandStartSession());
         event.registerServerCommand(new CommandDumpRegistry());
+        event.registerServerCommand(new CommandSpawnFile());
     }
 
     public static void chat(World world, String message) {
