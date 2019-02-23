@@ -19,43 +19,55 @@ import net.minecraft.world.World;
 public class BotHubBlock extends Block {
 
 
-    public BotHubBlock(String name, Material material) {
-        super(material);
-        setTranslationKey(name);
-        setRegistryName(name);
-        this.setBlockUnbreakable();
-    }
+	public BotHubBlock(String name, Material material) {
+		super(material);
+		setTranslationKey(name);
+		setRegistryName(name);
+		this.setBlockUnbreakable();
+	}
 
-    @Override
-    public boolean hasTileEntity(IBlockState state) {
-        return true;
-    }
+	@Override
+	public boolean hasTileEntity(IBlockState state) {
+		return true;
+	}
 
-    public TileEntity createTileEntity(World world, IBlockState state) {
+	public TileEntity createTileEntity(World world, IBlockState state) {
 
-        return new TileEntityBotHub();
-    }
+		return new TileEntityBotHub();
+	}
 
-    @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
-                                    EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	@Override
+	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
+			EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 
-        if (playerIn.isSneaking()) return false;
+		if (playerIn.isSneaking()) return false;
 
-        TileEntityBotHub botHub = null;
-        if (worldIn.getTileEntity(pos) instanceof TileEntityBotHub) {
-            botHub = (TileEntityBotHub) worldIn.getTileEntity(pos);
-        } else {
-            return false;
-        }
+		TileEntityBotHub botHub = null;
+		if (worldIn.getTileEntity(pos) instanceof TileEntityBotHub) {
+			botHub = (TileEntityBotHub) worldIn.getTileEntity(pos);
+		} else {
+			return false;
+		}
 
-        if (worldIn.isRemote) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiBotHub(botHub));
-        } else {
-            PacketHandler.INSTANCE.sendTo(new SyncOrganismsMessage(pos, botHub.organismsSpawned), (EntityPlayerMP) playerIn);
-        }
+		if (worldIn.isRemote) {
+			GuiBotHub bothub = new GuiBotHub(botHub);
+			Minecraft.getMinecraft().displayGuiScreen(bothub);
+			bothub.updateButtons();
+		} else {
+			PacketHandler.INSTANCE.sendTo(new SyncOrganismsMessage(pos, botHub.organismsSpawned), (EntityPlayerMP) playerIn);
+		}
 
-        return true;
-    }
+		return true;
+	}
+	
+	@Override
+	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+		TileEntity tile = worldIn.getTileEntity(pos);
+		if(tile instanceof TileEntityBotHub) {
+			System.out.println("TileEntity Broken");
+			((TileEntityBotHub) tile).broken = true;
+		}
+		super.breakBlock(worldIn, pos, state);
+	}
 
 }
