@@ -792,7 +792,8 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
 
 		super.setDead();
 	}
-
 }
+
+
 
 
