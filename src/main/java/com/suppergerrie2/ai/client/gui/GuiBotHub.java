@@ -2,13 +2,21 @@ package com.suppergerrie2.ai.client.gui;
 
 import com.suppergerrie2.ChaosNetClient.components.Organism;
 import com.suppergerrie2.ai.Reference;
+import com.suppergerrie2.ai.chaosnet.SupperCraftOrganism;
+import com.suppergerrie2.ai.entities.EntityMan;
 import com.suppergerrie2.ai.tileentity.TileEntityBotHub;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.Math.floor;
 
 public class GuiBotHub extends GuiScreen {
 
@@ -18,6 +26,10 @@ public class GuiBotHub extends GuiScreen {
 	private TileEntityBotHub bothub;
 	private int guiLeft;
 	private int guiTop;
+	List<GuiButton> buttons = new ArrayList<GuiButton>();
+	GuiButton button1;
+    final int BUTTON1 = 0;
+
 
 
 	public GuiBotHub(TileEntityBotHub bothub) {
@@ -30,38 +42,100 @@ public class GuiBotHub extends GuiScreen {
 
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
 
-		for(int i = 0; i < bothub.organismsSpawned.size(); i++) {
-			Organism organism = bothub.organismsSpawned.get(i);
-			this.drawString(this.fontRenderer, organism.getName(), guiLeft+5, guiTop + 5 + i * 10, 0xFFFF00);
-			this.drawString(this.fontRenderer, "Gen " + organism.getGeneration(), guiLeft + 55, guiTop + 5 + i * 10, 0xFFFF00);
-			this.drawString(this.fontRenderer, "Score " + organism.getScore(), guiLeft + 100, guiTop + 5 + i * 10, 0xFFFF00);
-			this.drawString(this.fontRenderer, "Life " + (Math.floor(organism.liveLeft)), guiLeft + 160, guiTop + 5 + i * 10, 0xFFFF00);
+		button1.drawButton(mc, mouseX, mouseY, partialTicks);
+		for(GuiButton button: buttons){
+			button.drawButton(mc, mouseX, mouseY, partialTicks);
 		}
-		
-		super.drawScreen(mouseX, mouseY, partialTicks);
 	}
 
 	@Override
 	public void initGui() {
 		super.initGui();
-
 		this.guiLeft = (this.width - this.guiWidth) / 2;
 		this.guiTop = (this.height - this.guiHeight) / 2;
+        buttonList.add(button1 = new GuiButton(BUTTON1, (width / 2) - 100 / 2, guiTop + this.guiWidth - 30, 100, 20, "Close"));
+        updateButtons();
 	}
+
+	public void updateButtons() {
+		int btnCount = 1;
+		buttons.clear();
+		for(SupperCraftOrganism organism: bothub.organismsSpawned){
+			AiGuiButton button;
+
+			buttonList.add(button = new AiGuiButton(
+							btnCount,
+							guiLeft + 5,
+                    ((btnCount * 15) + guiTop) - 10,
+							50,
+							15,
+					"" + organism.getName()
+					)
+			);
+            buttons.add(button);
+
+            buttonList.add(button = new AiGuiButton(
+                            btnCount,
+                            guiLeft + 55,
+                            ((btnCount * 15) + guiTop) - 10,
+                            50,
+                            15,
+                            "" + organism.getScore()
+                    )
+            );
+            buttons.add(button);
+
+            buttonList.add(button = new AiGuiButton(
+                            btnCount,
+                            guiLeft + 105,
+                            ((btnCount * 15) + guiTop) - 10,
+                            50,
+                            15,
+                            "" + organism.getGeneration()
+                    )
+            );
+            buttons.add(button);
+
+            buttonList.add(button = new AiGuiButton(
+                            btnCount,
+                            guiLeft + 155,
+                            ((btnCount * 15) + guiTop) - 10,
+                            50,
+                            15,
+                            "" + floor(organism.liveLeft)
+                    )
+            );
+            button.organism = organism;
+			btnCount += 1;
+			buttons.add(button);
+		}
+
+
+		//if (title.equals("Close"))  {
+		button1.enabled = true;
+        /*} else {
+            button1.enabled = false;
+        }*/
+	}
+
+
 
 	@Override
 	protected void actionPerformed(GuiButton button) throws IOException {
 		super.actionPerformed(button);
+
+        switch (button.id) {
+            case BUTTON1:
+                mc.displayGuiScreen(null);
+                break;
+        }
 	}
 
-	@Override
-	public boolean doesGuiPauseGame() {
-		return super.doesGuiPauseGame();
-	}
 
 	@Override
 	public void onGuiClosed() {
 		// TODO Auto-generated method stub
+        updateButtons();
 		super.onGuiClosed();
 	}
 }

@@ -16,8 +16,6 @@ public class GuiManInventory extends GuiContainer {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Reference.MODID, "textures/gui/inventory.png");
     private final InventoryPlayer player;
     private final EntityMan entityMan;
-    private GuiButton mine;
-    private GuiButton place;
     
     public GuiManInventory(InventoryPlayer inventory, EntityMan e) {
         super(new ContainerManInventory(inventory, e));
@@ -31,11 +29,7 @@ public class GuiManInventory extends GuiContainer {
     @Override
     public void initGui() {
         super.initGui();
-       this.buttonList.clear();
-       this.mine = this.addButton(new GuiButton( 0, this.guiLeft + 79, this.guiTop + 7, 90, 20, "Mine"));
-       this.place = this.addButton(new GuiButton( 1, this.guiLeft + 79, this.guiTop + 27, 90, 20, "Place"));
-       this.mine.enabled=true;
-       this.place.enabled=true;
+       
     }
 
     @Override
@@ -49,6 +43,7 @@ public class GuiManInventory extends GuiContainer {
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.renderHoveredToolTip(mouseX, mouseY);
         
+        
     }
 
     @Override
@@ -56,9 +51,5 @@ public class GuiManInventory extends GuiContainer {
         return false;
     }
     
-   @Override
-   protected void actionPerformed(GuiButton button) throws IOException {
-	   super.actionPerformed(button);
-   }
   
 }
