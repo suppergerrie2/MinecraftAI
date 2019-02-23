@@ -512,19 +512,21 @@ public class EntityMan extends EntityLiving implements IEntityAdditionalSpawnDat
             String debugMessage = this.getCustomNameTag() + " mined " + state.getBlock().getLocalizedName();
             MinecraftAI.chat(world, debugMessage);
 
-            List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("BLOCK_MINED");
-            for (FitnessRule fitnessRule : fitnessRules) {
-                if (fitnessRule.getAttributeID() == null || fitnessRule.getAttributeValue() == null) {
-                    //fitnessrule doesnt specify specific block, so it will give the score for each mined block
-                    organism.increaseScore(fitnessRule.getScoreEffect());
-                    organism.increaseLive(fitnessRule.getLiveEffect());
-                } else if (fitnessRule.getAttributeID().equals("BLOCK_ID")) {
-                    if (fitnessRule.getAttributeValue().equals(state.getBlock().getRegistryName().toString())) {
+            if(MinecraftAI.instance.session != null) {
+                List<FitnessRule> fitnessRules = MinecraftAI.instance.session.getTrainingRoom().getFitnessRules("BLOCK_MINED");
+                for (FitnessRule fitnessRule : fitnessRules) {
+                    if (fitnessRule.getAttributeID() == null || fitnessRule.getAttributeValue() == null) {
+                        //fitnessrule doesnt specify specific block, so it will give the score for each mined block
                         organism.increaseScore(fitnessRule.getScoreEffect());
                         organism.increaseLive(fitnessRule.getLiveEffect());
+                    } else if (fitnessRule.getAttributeID().equals("BLOCK_ID")) {
+                        if (fitnessRule.getAttributeValue().equals(state.getBlock().getRegistryName().toString())) {
+                            organism.increaseScore(fitnessRule.getScoreEffect());
+                            organism.increaseLive(fitnessRule.getLiveEffect());
+                        }
+                    } else {
+                        System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
                     }
-                } else {
-                    System.out.println("Unknown fitness attribute id: " + fitnessRule.getAttributeID());
                 }
             }
 
